@@ -1,6 +1,8 @@
 # Yet Another Blue Archive Mod Manager
 its yet another blue archive mod manager
 
+Currently switching from thkiner to webview because ~~thkiner sucks~~ thkiner is... intreasting. Because of this applying mods doesn't work so far, sorry about that, will be fixed soon
+
 ## Features:
  - Creates basic mod loading system
  - Backs up / Load original bundles 
