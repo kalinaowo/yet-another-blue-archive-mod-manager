@@ -1,13 +1,39 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
-from tkinter import messagebox
+import ttkbootstrap as tb
 import tkinter as tk
-import CRC_tool
 import modClass
 import os
+from ttkbootstrap.constants import *
+from ttkbootstrap.dialogs import Messagebox
+import ctypes as ct
 
-root = Tk()
+
+def dark_title_bar(window):
+    """
+    MORE INFO:
+    https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+    """
+    window.update()
+    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+    set_window_attribute = ct.windll.dwmapi.DwmSetWindowAttribute
+    get_parent = ct.windll.user32.GetParent
+    hwnd = get_parent(window.winfo_id())
+    rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
+    value = 2
+    value = ct.c_int(value)
+    set_window_attribute(hwnd, rendering_policy, ct.byref(value),
+                         ct.sizeof(value))
+
+root = tb.Window(themename="darkly")
+style = tb.Style()
+style.load_user_themes("theme.json")
+style.theme_use("newtheme")
+root.title("Yet Another Blue Archive Mod Manager")
+
+dark_title_bar(root)
+
 root2 = None
 modObjects = []
 checkmarks = []
@@ -20,7 +46,7 @@ def openModFolderSelector():
 
 def loadMods():
     if not os.path.exists(modLoc.get()):
-        messagebox.showerror("Error", "Invalid Path")
+        Messagebox.showerror("Error", "Invalid Path")
         return
     
     modClass.MOD_DIRECTORY = modLoc.get()
@@ -46,8 +72,11 @@ def addLog(logText):
 def applyModsGUI():
     global root2
     global checkmarks
-    root2 = tk.Tk()
-    root2.title("Mods")
+    root2 = tb.Window(themename="darkly")
+    style = tb.Style()
+    style.load_user_themes("theme.json")
+    style.theme_use("newtheme")
+    root2.title("Yet Another Blue Archive Mod Manager")
 
     container = ttk.Frame(root2, padding=10)
     container.grid(sticky="nsew")
@@ -96,8 +125,11 @@ def applyModsGUI():
 def restoreModsGUI():
     global root2
     global checkmarks
-    root2 = tk.Tk()
-    root2.title("Mods")
+    root2 = tb.Window(themename="darkly")
+    style = tb.Style()
+    style.load_user_themes("theme.json")
+    style.theme_use("newtheme")
+    root2.title("Yet Another Blue Archive Mod Manager")
 
     container = ttk.Frame(root2, padding=10)
     container.grid(sticky="nsew")
@@ -201,34 +233,35 @@ def restoreSelectedMods():
     addLog("=====")
     root2.destroy()
 
-frm = ttk.Frame(root, padding = 10)
-frm.grid()
+frm = tk.Frame(root)
+frm.grid( padx=5, pady=5)
 
 ttk.Label(frm, text="Mod Files Location: ").grid(column=0, row=0)
 modLoc = ttk.Entry(frm, width=50)
 modLoc.insert(0, "mods/")
-modLoc.grid(column=1, row=0)
-modOpenFilePicker = ttk.Button(frm, text="Open", command=openModFolderSelector)
-modOpenFilePicker.grid(column=2, row=0)
+modLoc.grid(column=1, row=0, padx=5, pady=5)
+modOpenFilePicker = ttk.Button(frm, text="Open", command=openModFolderSelector, bootstyle=(INFO, OUTLINE))
+modOpenFilePicker.grid(column=2, row=0, padx=5, pady=5)
 
 frmButtons = ttk.Frame(root, padding = 3)
 frmButtons.grid()
 
-loadModsButton = ttk.Button(frmButtons, text="Load Mods", command=loadMods)
-loadModsButton.grid(column=0, row=1)
+loadModsButton = ttk.Button(frmButtons, text="Load Mods", command=loadMods, bootstyle=(INFO, OUTLINE))
+loadModsButton.grid(column=0, row=1, padx=5, pady=5)
 
-applyModsButton = ttk.Button(frmButtons, text="Apply Mods", command=applyModsGUI)
-applyModsButton.grid(column=1, row=1)
+applyModsButton = ttk.Button(frmButtons, text="Apply Mods", command=applyModsGUI, bootstyle=(INFO, OUTLINE))
+applyModsButton.grid(column=1, row=1, padx=5, pady=5)
 
-restoreModsButton = ttk.Button(frmButtons, text="Restore Original", command=restoreModsGUI)
-restoreModsButton.grid(column=2, row=1)
+restoreModsButton = ttk.Button(frmButtons, text="Restore Original", command=restoreModsGUI, bootstyle=(INFO, OUTLINE))
+restoreModsButton.grid(column=2, row=1, padx=5, pady=5)
 
 modLoadInformation = ttk.Label(frmButtons, text="No mods loaded.")
-modLoadInformation.grid(column=1, row=2)
+modLoadInformation.grid(column=1, row=2, padx=0, pady=5)
 
-frmLog = ttk.Frame(root, padding = 3)
+frmLog = tk.Frame(root, bg="red", padx=2, pady=2)
 frmLog.grid()
-log = tk.Listbox(frmLog, width=70, height=10)
-log.grid(column=3, row=0)
+
+log = tk.Listbox(frmLog, width=70, height=10, bd=0, relief="flat")
+log.grid(column=3, row=0, padx=5, pady=12)
 
 root.mainloop()
