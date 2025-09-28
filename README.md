@@ -1,16 +1,21 @@
-# yet-another-blue-archive-mod-manager
+# Yet Another Blue Archive Mod Manager
 its yet another blue archive mod manager
 
+## Features:
  - Creates basic mod loading system
  - Backs up / Load original bundles 
  - Automatically patches CRC using the actual game's bundle file
 
-Issues:
+## Issues:
  - If mods are applied after they have been applied already, CRC may applied more then once.
 
-Goals:
- - Automatically patches file name
+## Goals:
  - Maybe automatically updates mods if they break
  - Detect old mods that use an outdated spine version (this probably cannot be fixed however)
  - Add support for sounds/video assets
- - ADD A GUI
+
+## Development:
+`git clone https://github.com/kalinaowo/yet-another-blue-archive-mod-manager.git
+cd yet-another-blue-archive-mod-manager
+python -m pip install ttkbootstrap
+python GUI.py`
