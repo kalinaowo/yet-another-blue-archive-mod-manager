@@ -15,9 +15,18 @@ its yet another blue archive mod manager
  - Add support for sounds/video assets
 
 ## Development:
+
+Old Version:
 <pre>
 git clone https://github.com/kalinaowo/yet-another-blue-archive-mod-manager.git
 cd yet-another-blue-archive-mod-manager
 python -m pip install ttkbootstrap
 python GUI.py
+</pre>
+
+New Version:
+<pre>
+git clone https://github.com/kalinaowo/yet-another-blue-archive-mod-manager.git
+cd yet-another-blue-archive-mod-manager
+python newGUI.py
 </pre>
