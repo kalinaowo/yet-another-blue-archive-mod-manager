@@ -30,6 +30,6 @@ New Version:
 <pre>
 git clone https://github.com/kalinaowo/yet-another-blue-archive-mod-manager.git
 cd yet-another-blue-archive-mod-manager
-python -m pip install webview  
+python -m pip install pywebview
 python newGUI.py
 </pre>
