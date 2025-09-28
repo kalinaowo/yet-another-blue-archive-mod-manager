@@ -50,6 +50,9 @@
                 color: #faa8ea;
                 overflow-y: auto; 
             }
+            .dragover {
+                border: 0.4vw solid #faa8ea;
+            }
             .styled-scrollbars {
                 scrollbar-color: transparent transparent;
                 scrollbar-width: thin;
@@ -146,6 +149,16 @@
                 font-weight: 400;
                 font-style: normal;
             }
+            .modT {
+                color: #faa8ea;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+                margin: 0px;
+                position: relative;
+                top:0.3vh;
+            }
             #nameChanger {
                 position: absolute;
                 transform: translate(-55%, -100%);
@@ -155,7 +168,7 @@
                 border-radius: 20px;
                 border: 0.5vw solid #faa8ea;
             }
-            #dim {
+            .dim {
                 position: absolute;
                 width:150%;
                 height:150%;
@@ -166,7 +179,7 @@
                 justify-content: center;
                 align-items: center;
             }
-            #nameChangeText {
+            .nameChangeText {
                 color: #faa8ea;
                 position: relative;
                 left:2vw;
@@ -189,15 +202,21 @@
         </style>
         <script>
             let currentMod = null;
+            let allowModCopying = false;
+            let modLength = 0;
             async function loadUserMods() {
                 let response = await window.pywebview.api.loadMod(document.getElementById("modFolderInput").value);
                 document.getElementById("loadedText").innerText = response;
+                if(response.startsWith("Mods")) {
+                    allowModCopying = true;
+                }
             }
             async function displayAllMods(modList) {
                 document.getElementById("mainModListDiv").innerHTML = "";
                 for(i = 0; i < modList.length; i++) {
                     createModEntry(modList[i], i);
                 }
+                modLength = modList.length;
             }
             async function selectFolder() {
                 let response = await window.pywebview.api.openFilePicker();
@@ -215,21 +234,28 @@
             }
             async function applyModChange() {
                 document.getElementById("modTextID"+currentMod).textContent = document.getElementById("nameChangeInput").value;
+                document.getElementById("characterNameText").textContent = document.getElementById("nameChangeInput").value;
                 let response = await window.pywebview.api.changeModName(document.getElementById("nameChangeInput").value,currentMod);
             }
+            async function deleteMod(id) {
+                if (currentMod == null) {
+                    return;
+                }
+                let response = await window.pywebview.api.deleteMod(currentMod);
+                closeProperties();
+            }
             function toggleModButton(id) {
-                if (document.getElementById("modButtonID"+id).textContent == "Enabled") {
-                    document.getElementById("modButtonID"+id).textContent = "Disabled";
+                if (document.getElementById("modButtonID"+id).textContent == "On") {
+                    document.getElementById("modButtonID"+id).textContent = "Off";
                 }
                 else {
-                    document.getElementById("modButtonID"+id).textContent = "Enabled";
+                    document.getElementById("modButtonID"+id).textContent = "On";
                 }
 
             }
             function cancelRenameMod() {
                 document.getElementById("nameChangeInput").value = "";
                 document.getElementById("dim").style.display = "none";
-                currentMod = null;
             }
             function createModEntry(modName, id) {
                 let newModDiv = document.createElement("div");
@@ -244,35 +270,89 @@
                 let modButtons = document.createElement("div");
                 modButtons.className = "modButtons";
 
-                let modRenameButton = document.createElement("button");
-                modRenameButton.className = "modB";
-                modRenameButton.textContent = "Rename";
-                modRenameButton.onclick = function() {
-                    openRenameMenu(id);
+                let propertiesButton = document.createElement("button");
+                propertiesButton.className = "modB";
+                propertiesButton.textContent = "Properties";
+                propertiesButton.onclick = function() {
+                    openPropertiesMenu(id);
                 };
-
-                let modDeleteButton = document.createElement("button");
-                modDeleteButton.className = "modB";
-                modDeleteButton.textContent = "Delete";
 
                 let applyModButton = document.createElement("button");
                 applyModButton.className = "modB";
-                applyModButton.textContent = "Enabled";
+                applyModButton.textContent = "On";
                 applyModButton.id = "modButtonID"+id;
                 applyModButton.onclick = function() {
                     toggleModButton(id);
                 };
+                let modStatusText = document.createElement("p");
+                modStatusText.className = "modT";
+                modStatusText.textContent = "";
+                modStatusText.id = "modStatusID"+id;
 
-
-                modButtons.appendChild(modRenameButton);
-                modButtons.appendChild(modDeleteButton);
+                modButtons.appendChild(modStatusText)
                 modButtons.appendChild(applyModButton);
+                modButtons.appendChild(propertiesButton);
 
                 newModDiv.appendChild(modText);
                 newModDiv.appendChild(modButtons);
 
                 document.getElementById("mainModListDiv").appendChild(newModDiv);
 
+            }
+            function closeProperties() {
+                currentMod = null;
+                document.getElementById("dim2").style.display = "none";
+            }
+            async function openPropertiesMenu(id) {
+                let modDetails = await window.pywebview.api.getModDetails(id);
+                document.getElementById("characterNameText").textContent = modDetails[0].toString();
+                document.getElementById("realCharacterNameText").textContent = "Character: " + modDetails[1].toString();
+                document.getElementById("isPrologdepengroupText").textContent = "Is Applied: " + modDetails[2].toString();
+                currentMod = id
+                document.getElementById("dim2").style.display = "flex";
+            }
+            window.onload = function() {
+                const dropzone = document.getElementsByClassName("dropzone")[0];
+                dropzone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add("dragover");
+                });
+
+                dropzone.addEventListener("dragleave", () => {
+                    dropzone.classList.remove("dragover");
+                });
+
+                dropzone.addEventListener("drop", async (e) => {
+                    if(!allowModCopying) {
+                        addLog("Please select a valid path before copying files!")
+                        return;
+                    }
+                    e.preventDefault();
+                    dropzone.classList.remove("dragover");
+
+                    let filesToSend = [];
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        for (let i = 0; i < files.length; i++) {
+                            const text = await files[i].text();
+                            filesToSend.push({"name":files[i].name, "data":text})
+                        }
+                    }
+                    sendFileData(filesToSend)
+                });
+            };
+            async function sendFileData(recievedFiles) {
+                await window.pywebview.api.recieveFileData(recievedFiles);
+            }
+            async function applyUserMods() {
+                buttonStates = []
+                for(let i = 0; i < modLength; i++) {
+                    buttonStates.push(document.getElementById("modButtonID"+i).innerHTML);
+                }
+                let response = await window.pywebview.api.applyMod(buttonStates);
+                for(let i = 0; i < response.length; i++) {
+                    document.getElementById("modStatusID" + i).textContent = response[i];
+                }
             }
         </script>
     </head>
@@ -291,7 +371,7 @@
             
             <div>
                 <button style="top:3vh" id="openButton" onclick="loadUserMods()">Refresh</button>
-                <button style="top:3vh" id="openButton">Apply</button>
+                <button style="top:3vh" id="openButton" onclick="applyUserMods()">Apply</button>
                 <button style="top:3vh" id="openButton">Restore</button>
                 <button style="top:3vh" id="openButton">Close</button>
             </div>
@@ -301,12 +381,27 @@
 
         <div id="logsDiv" class="styled-scrollbars"> </div>
 
-        <div id="mainModListDiv" class="styled-scrollbars"> </div>
+        <div id="mainModListDiv" class="styled-scrollbars dropzone"> </div>
 
-        <div id="dim" style="display: none;">
+
+        <div class="dim" id="dim2" style="display: none;">
             <div id="nameChanger">
-                <p id="nameChangeText"> Enter a new mod name </p>
-                <input id="nameChangeInput" placeholder="Enter a mod name" maxlength="40">
+                <p class="nameChangeText" id="characterNameText" style="font-weight: bold;"> azusa my beloved </p>
+                <p class="nameChangeText" id="realCharacterNameText"> Character: azusa_swimsuit_home </p>
+                <p class="nameChangeText" id="isPrologdepengroupText"> Is Applied: False </p>
+                <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="openRenameMenu(currentMod)">Rename</button>
+                <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="deleteMod()">Delete</button>
+                <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Cancel</button>
+
+                <button style="top:2.5vh; width:40%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Patch CRC</button>
+                <button style="top:2.5vh; width:40%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Update Mod</button>
+            </div>
+        </div>
+
+        <div class="dim" id="dim" style="display: none;">
+            <div id="nameChanger">
+                <p id="nameChangeText" class="nameChangeText"> Enter a new mod name </p>
+                <input id="nameChangeInput" placeholder="Enter a mod name" maxlength="20">
                 <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="applyModChange()">Apply</button>
                 <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="cancelRenameMod()">Cancel</button>
             </div>

@@ -11,6 +11,7 @@ MOD_BACKUP_LOCATION = MOD_DIRECTORY+"\\backup"
 
 class mod():
     modName = ""
+    modActualName = ""
     modPath = ""
     modType = ""
     prologdepengroup = False
@@ -43,6 +44,7 @@ class mod():
 
         self.modType = strippedModString.split("-")[0]
         self.modName = strippedModString.split("-")[1]
+        self.modActualName = self.modName
 
         self.CRCPatched = self.__checkCRCPatch()
 
@@ -65,8 +67,11 @@ class mod():
             modLocation += DEFAULT_LOCATION
 
         match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
-        print(match)
-        self.realPath = modLocation+"\\"+match
+        if match == None:
+            self.isValid = False
+            return
+        else:
+            self.realPath = modLocation+"\\"+match
 
     def remove_CRCPatch(self):
         with open(MOD_DIRECTORY+"\\"+self.modPath, "rb+") as f:
@@ -144,12 +149,13 @@ class mod():
 
     def restoreOriginalBundle(self):
         backup_path = MOD_DIRECTORY + "\\backup"
-        if os.path.exists(self.realPath):
-            os.remove(self.realPath)
         
         if not os.path.exists(backup_path+"\\"+(self.realPath.split("\\")[-1])):
             print("No backup file found! You can Verify integiry of game files in Steam to obtain the original bundle, (it will remove all mods).")
             return -1
+
+        if os.path.exists(self.realPath):
+            os.remove(self.realPath)
 
         shutil.copyfile(backup_path+"\\"+(self.realPath.split("\\")[-1]), self.realPath)
         print("Original bundle restored for " + str(self.modName))
@@ -172,3 +178,6 @@ class mod():
     def changeModName(self, newName):
         Storage.writeNewModName(self.modPath, newName, MOD_DIRECTORY)
         self.modName = newName
+
+def isValidModName(name):
+    return name.startswith("assets-_mx-") or name.startswith("prologdepengroup-assets-_mx-")

@@ -52,12 +52,101 @@ class modLoading:
             return result
         else:
             return ""
+        
+    def deleteMod(self, id):
+        print("DELETE SENT")
+        modObjects[id].deleteMod()
+        modObjects.remove(modObjects[id])
+        self.sendModNames()
 
     def changeModName(self, newModName, id):
         print(newModName)
         modObjects[id].changeModName(newModName)
         window.evaluate_js("cancelRenameMod()")
         
+    
+    def getModDetails(self, id):
+        details = []
+        details.append(modObjects[id].modName)
+        details.append(modObjects[id].modActualName)
+        details.append(modObjects[id].isApplied)
+        return details
+    
+    def applyMod(self, modOptions):
+        print(modOptions)
+        successfulApplications = 0
+        failedApplications = 0
+        applicationStatus = []
+        for i, x in enumerate(modOptions):
+            print(i)
+            applyThisMod = False
+            if x == "On":
+                applyThisMod = True
+            
+            if applyThisMod:
+                addLog("-----")
+                status = modObjects[i].backupRealBundle()
+                if status == -1:
+                    addLog("A error occured when backing up mod " + modObjects[i].modName + ", mod will not be applied...")
+                    failedApplications+=1
+                    applicationStatus.append("Fail")
+                    continue
+                elif status == 1:
+                    addLog("Successfully backed up mod: " + modObjects[i].modName)
+                else:
+                    addLog("Backup already exists for mod: " + modObjects[i].modName + " skipping backup creation.")
+                status = modObjects[i].patchCRC()
+                if status == -2:
+                    addLog("CRC patch cannot be applied for mod: " + modObjects[i].modName + ", it seems like the mod has already been applied, skipping mod application to avoid CRC corruption")
+                    failedApplications+=1
+                    applicationStatus.append("Fail")
+                    continue
+                elif status == -1:
+                    addLog("A error occured when applying the CRC for mod " + modObjects[i].modName + ".")
+                    failedApplications+=1
+                    applicationStatus.append("Fail")
+                    continue
+                else:
+                    addLog("Successfully patched CRC for mod " + modObjects[i].modName)
+                status = modObjects[i].applyMod()
+                if status == -1:
+                    addLog("A error occured when applying mod " + modObjects[i].modName + ", backup will be automatically restored.")
+                    applicationStatus.append("Fail")
+                    modObjects[i].restoreOriginalBundle()
+                    failedApplications+=1
+                    continue
+                addLog("Mod " + modObjects[i].modName + " successfully applied!")
+                applicationStatus.append("Success")
+                successfulApplications+=1
+                modObjects[i].isApplied = True
+        addLog("=====")
+        addLog("Finished applying mods, amount successful: " + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
+        addLog("=====")
+        return applicationStatus
+    
+    def recieveFileData(self, fileData):
+        for x in fileData:
+            if modClass.isValidModName(x["name"]):
+                try:
+                    with open(modClass.MOD_DIRECTORY+"\\"+x["name"], "w", encoding="utf-8") as out:
+                        out.write(x["data"])
+                    newMod = modClass.mod(x["name"])
+                    if not newMod.isValid:
+                        addLog("The file with path " + x["name"] + " does not appear to be a valid mod!")
+                        os.remove(modClass.MOD_DIRECTORY+"\\"+x["name"])
+                        continue
+                    modObjects.append(newMod)
+                    addLog("Successfully added mod " + str(newMod.modName))
+                except Exception as e:
+                    print(e)
+                    addLog("An error ocurred when processing file: " + str(x["name"]))
+            else:
+                addLog("The file with path " + x["name"] + " does not appear to be a valid mod!")
+        self.sendModNames()
+
+                
+
+
 
 base_path = os.path.dirname(__file__)
 with open(os.path.join(base_path, "assets", "index.html"), encoding="utf-8") as f:
@@ -66,7 +155,7 @@ with open(os.path.join(base_path, "assets", "index.html"), encoding="utf-8") as 
 def main():
     global window
     modManagerBackend = modLoading()
-    window = webview.create_window("My App", html=html_data, js_api=modManagerBackend)
+    window = webview.create_window("My App", html=html_data, js_api=modManagerBackend, width=800, height=800)
     webview.start()
 
 def addLog(log):
