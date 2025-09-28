@@ -1,8 +1,7 @@
 import os
 import CRC_tool
 import shutil
-# Automatically patch CRC/File name of Mods - No
-# Automatically check for
+import Storage
 
 MOD_DIRECTORY = "\\..\\BA Mod Manager\\mod"
 GAME_LOCATION = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\BlueArchive"
@@ -51,6 +50,10 @@ class mod():
         self.__obtainRealBundlePath()
 
         self.isApplied = self.__checkCRCPatch(self.realPath)
+
+        modName = Storage.retrieveModName(self.modPath)
+        if modName != -1:
+            self.modName = modName
 
     def __obtainRealBundlePath(self):
         prefix = self.modPath.split(".")[0]
@@ -156,3 +159,16 @@ class mod():
         if self.modPath.split(".")[0].split("_")[-1].isnumeric():
             os.rename(MOD_DIRECTORY+"\\"+self.modPath, MOD_DIRECTORY+"\\"+self.modPath[:-17]+".bundle")
             self.modPath = self.modPath[:-17]+".bundle"
+    
+    def deleteMod(self):
+        if self.isApplied:
+            self.restoreOriginalBundle()
+        try:
+            os.remove(MOD_DIRECTORY+"\\"+self.modPath)
+            return 1
+        except:
+            return -1
+    
+    def changeModName(self, newName):
+        Storage.writeNewModName(self.modPath, newName, MOD_DIRECTORY)
+        self.modName = newName
