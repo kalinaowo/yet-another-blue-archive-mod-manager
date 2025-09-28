@@ -1,0 +1,315 @@
+<html>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+        <style>
+            #topBar {
+                position: relative;
+                width: 99%;
+                height: 7%;
+                background-color: #1b1b1b;
+                border-radius: 23px;
+                color:#faa8ea;
+            }
+            #titleText {
+                position: relative;
+                top:1vh;
+                left:1.5vw;
+                font-size: 3.5vh;
+            }
+            #buttonsDiv {
+                position: relative;
+                background-color: #1b1b1b;
+                border-radius: 23px;
+                top:4%;
+                height: 41.5%;
+                width: 33%;
+                padding:1%;
+            }
+            #logsDiv {
+                position: relative;
+                background-color: #1b1b1b;
+                border-radius: 23px;
+                top:8vh;
+                height: 30.5%;
+                width: 33%;
+                padding:1%;
+                color: #faa8ea;
+                overflow-y: auto; 
+            }
+            #mainModListDiv {
+                position: relative;
+                background-color: #1b1b1b;
+                border-radius: 23px;
+                bottom:71.5vh;
+                height: 79%;
+                width: 56.5%;
+                left:40%;
+                padding:1%;
+                color: #faa8ea;
+                overflow-y: auto; 
+            }
+            .styled-scrollbars {
+                scrollbar-color: transparent transparent;
+                scrollbar-width: thin;
+                --scrollbar-background: var(--styled-scrollbar-background, var(--shreddit-content-background));
+            }
+            #modFolderInput {
+                background-color: #282a2c;
+                border: none;
+                border-radius: 20px;
+                top:2vh;
+                left:1vw;
+                position: relative;
+                width: 70%;
+                height:4.4vh;
+                color: #faa8ea;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+            button {
+                border-radius: 20px;
+                border: 0.4vw solid #faa8ea;
+                color: #faa8ea;
+                background-color: #282a2c;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+            #openButton {
+                position: relative;
+                width:22%;
+                height:4.4vh;
+                top:2vh;
+                left:1.5vw;
+                font-size: 1.3vw;
+            }
+            body {
+                overflow: hidden;
+                background-color: #131314;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+            input:focus {
+                outline: none;
+            }
+            #line {
+                width:100%;
+                height: 0.7vh;
+                background-color: #202020;
+                border-radius: 20px;
+                top:6vh;
+                position: relative;
+            }
+            #loadedText {
+                text-align: center;
+                color:#faa8ea;
+                font-size: 3.3vh;
+                position: relative;
+                top:4vh;
+            }
+            .modDiv {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 95%;          
+                margin: 10px auto;  
+                padding: 10px 15px;
+                border-radius: 20px;
+                background-color: #282a2c;
+            }
+
+            .modP {
+                font-size: 2.5vh;
+                margin: 0;
+                color:#faa8ea;
+            }
+
+            .modButtons {
+                display: flex;
+                gap: 10px;
+            }
+
+            .modB {
+                border-radius: 20px;
+                border: 0.4vw solid #faa8ea;
+                color: #faa8ea;
+                background-color: #282a2c;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+            #nameChanger {
+                position: absolute;
+                transform: translate(-55%, -100%);
+                width: 30%;
+                height: 20%;
+                background-color: #202020;
+                border-radius: 20px;
+                border: 0.5vw solid #faa8ea;
+            }
+            #dim {
+                position: absolute;
+                width:150%;
+                height:150%;
+                top:0%;
+                left:0%;
+                background-color: rgb(0,0,0,0.4);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            #nameChangeText {
+                color: #faa8ea;
+                position: relative;
+                left:2vw;
+            }
+            #nameChangeInput {
+                background-color: #282a2c;
+                border: none;
+                border-radius: 20px;
+                top:2vh;
+                left:2vw;
+                position: relative;
+                width: 90%;
+                height:4.4vh;
+                color: #faa8ea;
+                font-family: "Outfit", sans-serif;
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+        </style>
+        <script>
+            let currentMod = null;
+            async function loadUserMods() {
+                let response = await window.pywebview.api.loadMod(document.getElementById("modFolderInput").value);
+                document.getElementById("loadedText").innerText = response;
+            }
+            async function displayAllMods(modList) {
+                document.getElementById("mainModListDiv").innerHTML = "";
+                for(i = 0; i < modList.length; i++) {
+                    createModEntry(modList[i], i);
+                }
+            }
+            async function selectFolder() {
+                let response = await window.pywebview.api.openFilePicker();
+                document.getElementById("modFolderInput").value = response;
+            }
+            function addLog(msg) {
+                let newLog = document.createElement("p");
+                newLog.innerHTML = msg;
+                document.getElementById("logsDiv").appendChild(newLog);
+                document.getElementById("logsDiv").scrollTop = document.getElementById("logsDiv").scrollHeight;
+            }
+            function openRenameMenu(id) {
+                currentMod = id;
+                document.getElementById("dim").style.display = "flex";
+            }
+            async function applyModChange() {
+                document.getElementById("modTextID"+currentMod).textContent = document.getElementById("nameChangeInput").value;
+                let response = await window.pywebview.api.changeModName(document.getElementById("nameChangeInput").value,currentMod);
+            }
+            function toggleModButton(id) {
+                if (document.getElementById("modButtonID"+id).textContent == "Enabled") {
+                    document.getElementById("modButtonID"+id).textContent = "Disabled";
+                }
+                else {
+                    document.getElementById("modButtonID"+id).textContent = "Enabled";
+                }
+
+            }
+            function cancelRenameMod() {
+                document.getElementById("nameChangeInput").value = "";
+                document.getElementById("dim").style.display = "none";
+                currentMod = null;
+            }
+            function createModEntry(modName, id) {
+                let newModDiv = document.createElement("div");
+                newModDiv.className = "modDiv"; 
+                newModDiv.id = "modDivID"+id;
+
+                let modText = document.createElement("p");
+                modText.className = "modP";
+                modText.textContent = modName; 
+                modText.id = "modTextID"+id;
+
+                let modButtons = document.createElement("div");
+                modButtons.className = "modButtons";
+
+                let modRenameButton = document.createElement("button");
+                modRenameButton.className = "modB";
+                modRenameButton.textContent = "Rename";
+                modRenameButton.onclick = function() {
+                    openRenameMenu(id);
+                };
+
+                let modDeleteButton = document.createElement("button");
+                modDeleteButton.className = "modB";
+                modDeleteButton.textContent = "Delete";
+
+                let applyModButton = document.createElement("button");
+                applyModButton.className = "modB";
+                applyModButton.textContent = "Enabled";
+                applyModButton.id = "modButtonID"+id;
+                applyModButton.onclick = function() {
+                    toggleModButton(id);
+                };
+
+
+                modButtons.appendChild(modRenameButton);
+                modButtons.appendChild(modDeleteButton);
+                modButtons.appendChild(applyModButton);
+
+                newModDiv.appendChild(modText);
+                newModDiv.appendChild(modButtons);
+
+                document.getElementById("mainModListDiv").appendChild(newModDiv);
+
+            }
+        </script>
+    </head>
+    <body>
+        <div id="topBar">
+            <p id="titleText"> Yet Another Blue Archive Mod Manager </p>
+        </div>
+        <div id="buttonsDiv">
+            <div>
+                <input id="modFolderInput" placeholder="Click the open button to open a mod!">
+                <button id="openButton" onclick="selectFolder()">Open</button>
+            </div>
+
+            <div id="line"></div>
+            <p id="loadedText"> No Mods Loaded </p>
+            
+            <div>
+                <button style="top:3vh" id="openButton" onclick="loadUserMods()">Refresh</button>
+                <button style="top:3vh" id="openButton">Apply</button>
+                <button style="top:3vh" id="openButton">Restore</button>
+                <button style="top:3vh" id="openButton">Close</button>
+            </div>
+            <p style="font-size: 2.3vh;" id="loadedText"> v0.1 - Made by Kalina </p>
+
+        </div>
+
+        <div id="logsDiv" class="styled-scrollbars"> </div>
+
+        <div id="mainModListDiv" class="styled-scrollbars"> </div>
+
+        <div id="dim" style="display: none;">
+            <div id="nameChanger">
+                <p id="nameChangeText"> Enter a new mod name </p>
+                <input id="nameChangeInput" placeholder="Enter a mod name" maxlength="40">
+                <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="applyModChange()">Apply</button>
+                <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="cancelRenameMod()">Cancel</button>
+            </div>
+        </div>
+    </body>
+</html>
