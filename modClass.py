@@ -2,12 +2,15 @@ import os
 import CRC_tool
 import shutil
 import Storage
+import requests
+import json
 
 MOD_DIRECTORY = "\\..\\BA Mod Manager\\mod"
 GAME_LOCATION = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\BlueArchive"
 PRELOAD_LOCATION = "BlueArchive_Data\\StreamingAssets\\PUB\\Resource\\Preload\\Windows"
 DEFAULT_LOCATION = "BlueArchive_Data\\StreamingAssets\\PUB\\Resource\\GameData\\Windows"
 MOD_BACKUP_LOCATION = MOD_DIRECTORY+"\\backup"
+DATABASE_URL = "https://schaledb.com/data/en/students.json"
 
 class mod():
     modName = ""
@@ -53,6 +56,7 @@ class mod():
 
         self.isApplied = self.__checkCRCPatch(self.realPath)
 
+        self.modName = Storage.retrieveCharacterNameTranslations(self.modName, MOD_DIRECTORY)
         modName = Storage.retrieveModName(self.modPath)
         if modName != -1:
             self.modName = modName

@@ -124,6 +124,40 @@ class modLoading:
         addLog("=====")
         return applicationStatus
     
+    def restoreSelectedMods(self, modOptions):
+        print(modOptions)
+        successfulApplications = 0
+        failedApplications = 0
+        applicationStatus = []
+        for i, x in enumerate(modOptions):
+            applyThisMod = False
+            if x == "On":
+                applyThisMod = True
+            if applyThisMod:
+                status = modObjects[i].restoreOriginalBundle()
+                if status == -1:
+                    addLog("Mod " + modObjects[i].modName + " cannot be restored, no backup files found! You can verifiy integrity of game files in Steam to obtain the original bundle file (all mods will be removed however.)")
+                    failedApplications+=1
+                    applicationStatus.append("Restore Fail")
+                    continue
+                else:
+                    addLog("Mod " + modObjects[i].modName + " successfully restored!")
+                successfulApplications+=1
+                applicationStatus.append("Success")
+        addLog("=====")
+        addLog("Finished restoring mods, amount successful: " + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
+        addLog("=====")
+        return applicationStatus
+    
+    def patchCRC(self, modID):
+        status = modObjects[modID].patchCRC()
+        if status == -2:
+            addLog("CRC patch for mod " + modObjects[modID].modName + " failed, mod is applied and a CRC patch may corrupt the CRC")
+        elif status == -1:
+            addLog("CRC patch for mod " + modObjects[modID].modName + " failed, an error occured.")
+        else:
+            addLog("Successfully applied patch for mod " + modObjects[modID].modName)
+
     def recieveFileData(self, fileData):
         for x in fileData:
             if modClass.isValidModName(x["name"]):

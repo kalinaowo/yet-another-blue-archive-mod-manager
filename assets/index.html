@@ -11,6 +11,7 @@
                 background-color: #1b1b1b;
                 border-radius: 23px;
                 color:#faa8ea;
+                top:1vh
             }
             #titleText {
                 position: relative;
@@ -23,6 +24,7 @@
                 background-color: #1b1b1b;
                 border-radius: 23px;
                 top:4%;
+                left:1vw;
                 height: 41.5%;
                 width: 33%;
                 padding:1%;
@@ -32,7 +34,8 @@
                 background-color: #1b1b1b;
                 border-radius: 23px;
                 top:8vh;
-                height: 30.5%;
+                left:1vw;
+                height: 37.5%;
                 width: 33%;
                 padding:1%;
                 color: #faa8ea;
@@ -42,8 +45,8 @@
                 position: relative;
                 background-color: #1b1b1b;
                 border-radius: 23px;
-                bottom:71.5vh;
-                height: 79%;
+                bottom:77.5vh;
+                height: 85.3%;
                 width: 56.5%;
                 left:40%;
                 padding:1%;
@@ -121,7 +124,7 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                width: 95%;          
+                width: 93%;          
                 margin: 10px auto;  
                 padding: 10px 15px;
                 border-radius: 20px;
@@ -129,7 +132,7 @@
             }
 
             .modP {
-                font-size: 2.5vh;
+                font-size: 2vh;
                 margin: 0;
                 color:#faa8ea;
             }
@@ -204,6 +207,7 @@
             let currentMod = null;
             let allowModCopying = false;
             let modLength = 0;
+            let realModName = null;
             async function loadUserMods() {
                 let response = await window.pywebview.api.loadMod(document.getElementById("modFolderInput").value);
                 document.getElementById("loadedText").innerText = response;
@@ -237,11 +241,23 @@
                 document.getElementById("characterNameText").textContent = document.getElementById("nameChangeInput").value;
                 let response = await window.pywebview.api.changeModName(document.getElementById("nameChangeInput").value,currentMod);
             }
+            async function reset() {
+                document.getElementById("modTextID"+currentMod).textContent = realModName;
+                document.getElementById("characterNameText").textContent = realModName;
+                let response = await window.pywebview.api.changeModName(realModName, currentMod);
+            }
             async function deleteMod(id) {
                 if (currentMod == null) {
                     return;
                 }
                 let response = await window.pywebview.api.deleteMod(currentMod);
+                closeProperties();
+            }
+            async function patchCRC(id) {
+                if (currentMod == null) {
+                    return;
+                }
+                let response = await window.pywebview.api.patchCRC(currentMod);
                 closeProperties();
             }
             function toggleModButton(id) {
@@ -309,6 +325,7 @@
                 document.getElementById("realCharacterNameText").textContent = "Character: " + modDetails[1].toString();
                 document.getElementById("isPrologdepengroupText").textContent = "Is Applied: " + modDetails[2].toString();
                 currentMod = id
+                realModName = modDetails[1].toString();
                 document.getElementById("dim2").style.display = "flex";
             }
             window.onload = function() {
@@ -350,8 +367,32 @@
                     buttonStates.push(document.getElementById("modButtonID"+i).innerHTML);
                 }
                 let response = await window.pywebview.api.applyMod(buttonStates);
-                for(let i = 0; i < response.length; i++) {
-                    document.getElementById("modStatusID" + i).textContent = response[i];
+                i2 = 0
+                for(let i = 0; i < response.length;) {
+                    if(buttonStates[i+i2] == "On") {
+                        document.getElementById("modStatusID" + (i+i2)).textContent = response[i];
+                        i++;
+                    }
+                    else {
+                        i2++;
+                    }
+                }
+            }
+            async function restoreUserMods() {
+                buttonStates = []
+                for(let i = 0; i < modLength; i++) {
+                    buttonStates.push(document.getElementById("modButtonID"+i).innerHTML);
+                }
+                let response = await window.pywebview.api.restoreSelectedMods(buttonStates);
+                i2 = 0
+                for(let i = 0; i < response.length;) {
+                    if(buttonStates[i+i2] == "On") {
+                        document.getElementById("modStatusID" + (i+i2)).textContent = response[i];
+                        i++;
+                    }
+                    else {
+                        i2++;
+                    }
                 }
             }
         </script>
@@ -372,7 +413,7 @@
             <div>
                 <button style="top:3vh" id="openButton" onclick="loadUserMods()">Refresh</button>
                 <button style="top:3vh" id="openButton" onclick="applyUserMods()">Apply</button>
-                <button style="top:3vh" id="openButton">Restore</button>
+                <button style="top:3vh" id="openButton" onclick="restoreUserMods()">Restore</button>
                 <button style="top:3vh" id="openButton">Close</button>
             </div>
             <p style="font-size: 2.3vh;" id="loadedText"> v0.1 - Made by Kalina </p>
@@ -381,7 +422,9 @@
 
         <div id="logsDiv" class="styled-scrollbars"> </div>
 
-        <div id="mainModListDiv" class="styled-scrollbars dropzone"> </div>
+        <div id="mainModListDiv" class="styled-scrollbars dropzone">
+            <p class="nameChangeText" id="characterNameText"> Drag a mod to this window add it! </p>
+        </div>
 
 
         <div class="dim" id="dim2" style="display: none;">
@@ -390,10 +433,11 @@
                 <p class="nameChangeText" id="realCharacterNameText"> Character: azusa_swimsuit_home </p>
                 <p class="nameChangeText" id="isPrologdepengroupText"> Is Applied: False </p>
                 <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="openRenameMenu(currentMod)">Rename</button>
+                <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="reset()">Reset</button>
                 <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="deleteMod()">Delete</button>
                 <button style="top:1vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Cancel</button>
 
-                <button style="top:2.5vh; width:40%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Patch CRC</button>
+                <button style="top:2.5vh; width:40%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="patchCRC()">Patch CRC</button>
                 <button style="top:2.5vh; width:40%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Update Mod</button>
             </div>
         </div>
