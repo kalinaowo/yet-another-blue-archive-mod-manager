@@ -31,5 +31,6 @@ New Version:
 git clone https://github.com/kalinaowo/yet-another-blue-archive-mod-manager.git
 cd yet-another-blue-archive-mod-manager
 python -m pip install pywebview
+python -m pip install requests
 python newGUI.py
 </pre>
