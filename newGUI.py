@@ -3,6 +3,7 @@ import os
 import modClass
 import Storage
 import json
+import time
 
 window = None
 modObjects = None
@@ -14,12 +15,14 @@ class modLoading:
     def loadMods(self, MOD_PATH):
         global modObjects
         modObjects = []
+        if MOD_PATH == "mod" and not os.path.exists(MOD_PATH):
+            os.mkdir(MOD_PATH)
         if not os.path.exists(MOD_PATH):
             addLog("Invalid Path")
             return "Invalid Mod Path!"
         
         modClass.MOD_DIRECTORY = MOD_PATH
-        Storage.loadData(modClass.MOD_DIRECTORY)
+        Storage.loadData()
         files = os.listdir(MOD_PATH)
         validMods = 0
         invalidMods = 0
@@ -34,6 +37,7 @@ class modLoading:
             modObjects.append(newMod)
         addLog("Loading completed! Mods loaded successfully: " + str(validMods) + "/" + str(invalidMods+validMods))
         self.sendModNames()
+        Storage.addData("mod_path", MOD_PATH)
         return "Mods loaded: " + str(validMods) + "/" + str(invalidMods+validMods)
     
     def sendModNames(self):
@@ -178,7 +182,28 @@ class modLoading:
                 addLog("The file with path " + x["name"] + " does not appear to be a valid mod!")
         self.sendModNames()
 
-                
+    def updateMod(self, id):
+        addLog("Starting mod update for " + modObjects[id].modName + "..., this may take some time.")
+        response = modObjects[id].updateMod()  
+        if response[0]:
+            addLog("Mod update for " + modObjects[id].modName + " was successsful!")
+        else:
+            addLog("Mod update for " + modObjects[id].modName + " had failed.")
+            addLog(response[1])
+    
+    def submitGameDir(self, newDir):
+        if not os.path.exists(newDir):
+            addLog("New game directory path does not exist!")
+            return
+        
+        if not os.path.exists(newDir+"\\BlueArchive.exe"):
+            print(newDir+"\\BlueArchive.exe")
+            addLog("This folder does not seem to contain Blue Archive! Please add the folder with BlueArchive.exe")
+            return
+        
+        modClass.GAME_LOCATION = newDir
+        Storage.addData("default_game_directory", newDir)
+        addLog("Updated game directory!")
 
 
 
@@ -186,15 +211,39 @@ base_path = os.path.dirname(__file__)
 with open(os.path.join(base_path, "assets", "index.html"), encoding="utf-8") as f:
     html_data = f.read()
 
+Storage.loadData()
+storagePath = Storage.retrieveData("mod_path")
+if storagePath == None:
+    storagePath = "mod"
+
+gameDir = Storage.retrieveData("default_game_directory")
+if gameDir != None:
+    modClass.GAME_LOCATION = gameDir
+
+html_data = html_data.replace(r"mod\\", storagePath)
+html_data = html_data.replace(r"-defaultGameDir-", modClass.GAME_LOCATION)
+
 def main():
     global window
     modManagerBackend = modLoading()
     window = webview.create_window("My App", html=html_data, js_api=modManagerBackend, width=800, height=800)
+    window.events.resized += on_resized
     webview.start()
 
 def addLog(log):
     global window
     window.evaluate_js(f"addLog('{log}')")
+
+
+def on_resized(window, width, height):
+    current_ratio = width / height
+    if abs(current_ratio - 1) > 0.01:
+        if current_ratio > 1:
+            new_width = int(height)
+            window.resize(new_width, height)
+        else:
+            new_height = int(width)
+            window.resize(width, new_height)
 
 if __name__ == "__main__":
     main()

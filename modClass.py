@@ -4,6 +4,7 @@ import shutil
 import Storage
 import requests
 import json
+import mainUpdater
 
 MOD_DIRECTORY = "\\..\\BA Mod Manager\\mod"
 GAME_LOCATION = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\BlueArchive"
@@ -50,16 +51,35 @@ class mod():
         self.modActualName = self.modName
 
         self.CRCPatched = self.__checkCRCPatch()
-
-        self.stripTrailingDigits()
         self.__obtainRealBundlePath()
 
         self.isApplied = self.__checkCRCPatch(self.realPath)
 
-        self.modName = Storage.retrieveCharacterNameTranslations(self.modName, MOD_DIRECTORY)
+        self.modName = Storage.retrieveCharacterNameTranslations(self.modName)
         modName = Storage.retrieveModName(self.modPath)
         if modName != -1:
             self.modName = modName
+        self.fixNaming()
+
+    def fixNaming(self):
+        if not self.isValid:
+            return
+        prefix = self.modPath.split(".")[0]
+        modLocation = GAME_LOCATION+"\\"
+
+        if self.prologdepengroup:
+            modLocation += PRELOAD_LOCATION
+        else:
+            modLocation += DEFAULT_LOCATION
+
+        match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
+        if self.modPath!=match:
+            print(MOD_DIRECTORY+"\\"+self.modPath,MOD_DIRECTORY+"\\"+match)
+            try:
+                os.rename(MOD_DIRECTORY+"\\"+self.modPath,MOD_DIRECTORY+"\\"+match)
+                self.modPath = match
+            except:
+                print("Error in mod name fixing.")
 
     def __obtainRealBundlePath(self):
         prefix = self.modPath.split(".")[0]
@@ -165,11 +185,6 @@ class mod():
         print("Original bundle restored for " + str(self.modName))
         return 1
     
-    def stripTrailingDigits(self):
-        if self.modPath.split(".")[0].split("_")[-1].isnumeric():
-            os.rename(MOD_DIRECTORY+"\\"+self.modPath, MOD_DIRECTORY+"\\"+self.modPath[:-17]+".bundle")
-            self.modPath = self.modPath[:-17]+".bundle"
-    
     def deleteMod(self):
         if self.isApplied:
             self.restoreOriginalBundle()
@@ -180,8 +195,25 @@ class mod():
             return -1
     
     def changeModName(self, newName):
-        Storage.writeNewModName(self.modPath, newName, MOD_DIRECTORY)
+        Storage.writeNewModName(self.modPath, newName)
         self.modName = newName
+
+    def updateMod(self):
+        if self.isApplied:
+            print("Mod applied, cannot update")
+            return False, "Please unapply mod before updating first!", None
+        sourceFile = GAME_LOCATION
+        if self.prologdepengroup:
+            sourceFile = sourceFile + "\\" + PRELOAD_LOCATION
+        else:
+            sourceFile = sourceFile + "\\" + DEFAULT_LOCATION
+        
+        status = mainUpdater.updateMod(MOD_DIRECTORY+"\\"+self.modPath, sourceFile, MOD_DIRECTORY)
+        print(MOD_DIRECTORY+"\\uncrc_"+self.modPath)
+        if os.path.exists(MOD_DIRECTORY+"\\uncrc_"+self.modPath):
+            os.remove(MOD_DIRECTORY+"\\uncrc_"+self.modPath)
+
+        return status
 
 def isValidModName(name):
     return name.startswith("assets-_mx-") or name.startswith("prologdepengroup-assets-_mx-")

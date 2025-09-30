@@ -9,33 +9,43 @@ modData = {
     "defaultModDir" : "\\mod"
 }
 
-def loadData(MOD_DIRECTORY):
+def loadData():
     global modData
-    print(os.path.exists(MOD_DIRECTORY+"\\modData.json"))
-    if os.path.exists(MOD_DIRECTORY+"\\modData.json"):
-        with open(MOD_DIRECTORY+"\\modData.json", 'r') as f:
+    if os.path.exists("modData.json"):
+        with open("modData.json", 'r') as f:
             modData = json.loads(f.read())
     else:
-        saveDataFile(MOD_DIRECTORY)
+        saveDataFile()
 
-def saveDataFile(MOD_DIRECTORY):
-    with open(MOD_DIRECTORY+"\\modData.json", 'w') as f:
+def saveDataFile():
+    with open("modData.json", 'w') as f:
         f.write(json.dumps(modData))
 
-def writeNewModName(modPath, newModName, MOD_DIRECTORY):
+def writeNewModName(modPath, newModName):
     modData["mods"][modPath] = {"name": newModName}
-    saveDataFile(MOD_DIRECTORY)
-    loadData(MOD_DIRECTORY)
+    saveDataFile()
+    loadData()
 
 def retrieveModName(modPath):
     try:
         return modData["mods"][modPath]["name"]
     except:
         return -1
+    
+def addData(key, contents):
+    modData[key] = contents
+    print(modData[key])
+    saveDataFile()
 
-def downloadNameTranslations(MOD_DIRECTORY):
+def retrieveData(key):
+    try:
+        return modData[key]
+    except:
+        return None
+
+def downloadNameTranslations():
     print("Downloading Name Translations...")
-    save_path = MOD_DIRECTORY+"\\student_names.json"
+    save_path = "student_names.json"
 
     resp = requests.get("https://schaledb.com/data/en/students.json")
     resp.raise_for_status()
@@ -51,12 +61,12 @@ def downloadNameTranslations(MOD_DIRECTORY):
     with open(save_path, "w", encoding="utf-8") as f:
         f.write(json.dumps(constructedNames))
 
-def retrieveCharacterNameTranslations(char_path, MOD_DIRECTORY):
+def retrieveCharacterNameTranslations(char_path):
     orgChar = char_path
-    save_path = MOD_DIRECTORY+"\\student_names.json"
+    save_path = "student_names.json"
 
     if not os.path.exists(save_path):
-        downloadNameTranslations(MOD_DIRECTORY)
+        downloadNameTranslations()
     
     with open(save_path, "r", encoding="utf-8") as f:
         translations = json.loads(f.read())
