@@ -42,5 +42,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\Systemless\\Documents\\Blue Archive\\yet-another-blue-archive-mod-manager\\favicon.ico'],
+    icon=['favicon.ico'],
 )
