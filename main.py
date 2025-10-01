@@ -261,9 +261,7 @@ class modLoading:
 
 
 
-base_path = os.path.dirname(__file__)
-with open(os.path.join(base_path, "assets", "index.html"), encoding="utf-8") as f:
-    html_data = f.read()
+html_data = Storage.load_ui_asset()
 
 Storage.loadData()
 storagePath = Storage.retrieveData("mod_path")
@@ -280,7 +278,7 @@ html_data = html_data.replace(r"-defaultGameDir-", modClass.GAME_LOCATION)
 def main():
     global window
     modManagerBackend = modLoading()
-    window = webview.create_window("My App", html=html_data, js_api=modManagerBackend, width=800, height=800, resizable=False)
+    window = webview.create_window("Yet Another Blue Archive Mod Manager", html=html_data, js_api=modManagerBackend, width=800, height=800, resizable=False)
     webview.start()
 
 def addLog(log):

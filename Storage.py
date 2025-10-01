@@ -1,11 +1,35 @@
 import json
 import os
 import requests
+import sys
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+        
+    return os.path.join(base_path, relative_path)
 
 modData = {
     "mods": {},
     "defaultModDir" : "\\mod"
 }
+
+def load_ui_asset():
+    try:
+        file_path = resource_path(os.path.join("assets", "index.html"))
+        
+        with open(file_path, encoding="utf-8") as f:
+            html_data = f.read()
+            return html_data
+
+    except FileNotFoundError as e:
+        print("Big error, can't load index.html")
+        print(e)
+        sys.exit(1)
+
 
 def loadData():
     global modData
@@ -45,8 +69,12 @@ def downloadNameTranslations():
     print("Downloading Name Translations...")
     save_path = "student_names.json"
 
-    resp = requests.get("https://schaledb.com/data/en/students.json")
-    resp.raise_for_status()
+    try:
+        resp = requests.get("https://schaledb.com/data/en/students.json")
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading name translations: {e}")
+        return
 
     print("Formatting Name Translations...")
     data = json.loads(resp.content)
@@ -66,8 +94,6 @@ def retrieveCharacterNameTranslations(char_path):
     if not os.path.exists(save_path):
         downloadNameTranslations()
     
-    with open(save_path, "r", encoding="utf-8") as f:
-        translations = json.loads(f.read())
     modType = " model"
     if char_path.endswith("_spr"):
         modType = " sprite"
@@ -75,6 +101,13 @@ def retrieveCharacterNameTranslations(char_path):
     elif char_path.endswith("_home"):
         modType = " L2D"
         char_path = char_path[:-5]
+
+    if not os.path.exists(save_path):
+        return char_path.replace("_", " ").title()+modType
+
+    with open(save_path, "r", encoding="utf-8") as f:
+        translations = json.loads(f.read())
+        
     try:
         return translations[char_path]["name"]+modType
     except Exception as e:

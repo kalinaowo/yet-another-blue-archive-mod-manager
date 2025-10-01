@@ -1,5 +1,5 @@
 # Yet Another Blue Archive Mod Manager
-its yet another blue archive mod manager
+Its yet another blue archive mod manager, now on v0.1b1!
 
 Whats new in v0.1b1:
  - Fixes a ton of bugs that were in previous versions
