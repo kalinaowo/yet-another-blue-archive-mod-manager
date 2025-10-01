@@ -65,12 +65,12 @@ class mod():
         if not self.isValid:
             return
         prefix = self.modPath.split(".")[0]
-        modLocation = GAME_LOCATION+"\\"
+        modLocation = GAME_LOCATION
 
         if self.prologdepengroup:
-            modLocation += PRELOAD_LOCATION
+            modLocation = os.path.join(modLocation,PRELOAD_LOCATION)
         else:
-            modLocation += DEFAULT_LOCATION
+            modLocation = os.path.join(modLocation,DEFAULT_LOCATION)
 
         match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
         if self.modPath!=match:
@@ -83,22 +83,22 @@ class mod():
 
     def __obtainRealBundlePath(self):
         prefix = self.modPath.split(".")[0]
-        modLocation = GAME_LOCATION+"\\"
+        modLocation = GAME_LOCATION
 
         if self.prologdepengroup:
-            modLocation += PRELOAD_LOCATION
+            modLocation = os.path.join(modLocation,PRELOAD_LOCATION)
         else:
-            modLocation += DEFAULT_LOCATION
+            modLocation = os.path.join(modLocation,DEFAULT_LOCATION)
 
         match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
         if match == None:
             self.isValid = False
             return
         else:
-            self.realPath = modLocation+"\\"+match
+            self.realPath = os.path.join(modLocation,match)
 
     def remove_CRCPatch(self):
-        with open(MOD_DIRECTORY+"\\"+self.modPath, "rb+") as f:
+        with open(os.path.join(MOD_DIRECTORY,self.modPath), "rb+") as f:
             f.seek(0, 2)
             size = f.tell()
             f.truncate(size - 4)    
@@ -114,7 +114,7 @@ class mod():
             print("Removed CRC Patch")
             self.remove_CRCPatch()
         try:
-            CRC_tool.manipulate_crc(self.realPath, MOD_DIRECTORY+"\\"+self.modPath)
+            CRC_tool.manipulate_crc(self.realPath, os.path.join(MOD_DIRECTORY,self.modPath))
         except Exception as e:
             print("A error occured when applying CRC for mod: " + str(self.modName) + ", " + str(e))
             return -1
@@ -123,7 +123,7 @@ class mod():
     
     def __checkCRCPatch(self, path = ""):
         if path == "":
-            path = MOD_DIRECTORY+"\\"+self.modPath
+            path = os.path.join(MOD_DIRECTORY,self.modPath)
         with open(path, "rb") as f:
             f.seek(-1, 2)  
             last_byte = f.read(1)
@@ -144,15 +144,15 @@ class mod():
         print("Real bundle path: " + str(self.realPath))
 
     def backupRealBundle(self):
-        backup_path = MOD_DIRECTORY + "\\backup"
+        backup_path = os.path.join(MOD_DIRECTORY,"backup")
         if not os.path.exists(backup_path):
             os.mkdir(backup_path)
             print("Created backup folder")
-        if os.path.exists(backup_path+"\\"+(self.realPath.split("\\")[-1])):
+        if os.path.exists(os.path.join(backup_path,(self.realPath.split("\\")[-1]))):
             print("Backup for " + str(self.modName) + " exists, skipping...")
             return 0
         try:
-            shutil.copyfile(self.realPath, backup_path+"\\"+(self.realPath.split("\\")[-1]))
+            shutil.copyfile(self.realPath, os.path.join(backup_path,(self.realPath.split("\\")[-1])))
         except Exception as e:
             print("A error occured when backing up file: " + str(self.modName) + ", " + str(e))
             return -1
@@ -163,8 +163,8 @@ class mod():
         if os.path.exists(self.realPath):
             os.remove(self.realPath)
         try:
-            print(MOD_DIRECTORY+"\\"+self.modPath, self.realPath)
-            shutil.copyfile(MOD_DIRECTORY+"\\"+self.modPath, self.realPath)
+            print(os.path.join(MOD_DIRECTORY,self.modPath), self.realPath)
+            shutil.copyfile(os.path.join(MOD_DIRECTORY,self.modPath))
             print("Successfully applied mod for " + str(self.modName))
             return 1
         except Exception as e:
@@ -172,7 +172,7 @@ class mod():
             return -1
 
     def restoreOriginalBundle(self):
-        backup_path = MOD_DIRECTORY + "\\backup"
+        backup_path = os.path.join(MOD_DIRECTORY,"backup")
         
         if not os.path.exists(backup_path+"\\"+(self.realPath.split("\\")[-1])):
             print("No backup file found! You can Verify integiry of game files in Steam to obtain the original bundle, (it will remove all mods).")
@@ -181,7 +181,7 @@ class mod():
         if os.path.exists(self.realPath):
             os.remove(self.realPath)
 
-        shutil.copyfile(backup_path+"\\"+(self.realPath.split("\\")[-1]), self.realPath)
+        shutil.copyfile(os.path.join(backup_path,(self.realPath.split("\\")[-1])), self.realPath)
         print("Original bundle restored for " + str(self.modName))
         return 1
     
@@ -189,7 +189,7 @@ class mod():
         if self.isApplied:
             self.restoreOriginalBundle()
         try:
-            os.remove(MOD_DIRECTORY+"\\"+self.modPath)
+            os.remove(os.path.join(MOD_DIRECTORY,self.modPath))
             return 1
         except:
             return -1
@@ -204,14 +204,13 @@ class mod():
             return False, "Please unapply mod before updating first!", None
         sourceFile = GAME_LOCATION
         if self.prologdepengroup:
-            sourceFile = sourceFile + "\\" + PRELOAD_LOCATION
+            sourceFile = os.path.join(sourceFile, PRELOAD_LOCATION) 
         else:
-            sourceFile = sourceFile + "\\" + DEFAULT_LOCATION
+            sourceFile = os.path.join(sourceFile, DEFAULT_LOCATION)
         
-        status = mainUpdater.updateMod(MOD_DIRECTORY+"\\"+self.modPath, sourceFile, MOD_DIRECTORY)
-        print(MOD_DIRECTORY+"\\uncrc_"+self.modPath)
-        if os.path.exists(MOD_DIRECTORY+"\\uncrc_"+self.modPath):
-            os.remove(MOD_DIRECTORY+"\\uncrc_"+self.modPath)
+        status = mainUpdater.updateMod(os.path.join(MOD_DIRECTORY,self.modPath), sourceFile, MOD_DIRECTORY)
+        if os.path.exists(os.path.join(MOD_DIRECTORY,"uncrc_"+self.modPath)):
+            os.remove(os.path.join(MOD_DIRECTORY,"uncrc_"+self.modPath))
 
         return status
 

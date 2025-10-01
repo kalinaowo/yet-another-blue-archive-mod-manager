@@ -3,22 +3,20 @@ import os
 import requests
 
 modData = {
-    "mods": {
-        
-    },
+    "mods": {},
     "defaultModDir" : "\\mod"
 }
 
 def loadData():
     global modData
-    if os.path.exists("modData.json"):
-        with open("modData.json", 'r') as f:
+    if os.path.exists("mod_data.json"):
+        with open("mod_data.json", 'r') as f:
             modData = json.loads(f.read())
     else:
         saveDataFile()
 
 def saveDataFile():
-    with open("modData.json", 'w') as f:
+    with open("mod_data.json", 'w') as f:
         f.write(json.dumps(modData))
 
 def writeNewModName(modPath, newModName):
@@ -82,3 +80,16 @@ def retrieveCharacterNameTranslations(char_path):
     except Exception as e:
         print("Error when translating mod name " + str(char_path) + ", " + str(e))
         return char_path.replace("_", " ").title()+modType
+
+def deleteTranslations():
+    if os.path.exists("student_names.json"):
+        os.remove("student_names.json")
+
+def deleteStorage():
+    global modData
+    if os.path.exists("mod_data.json"):
+        os.remove("mod_data.json")
+    modData = {
+        "mods": {},
+        "defaultModDir" : "\\mod"
+    }
