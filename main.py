@@ -214,35 +214,34 @@ class modLoading:
         Storage.addData("default_game_directory", newDir)
         addLog("Updated game directory!")
     
-    def updateAllMods():
+    def updateAllMods(self):
         successful = 0
         unsuccessful = 0
         for x in modObjects:
             addLog("Updating all mods, this make take a while, do not close the window.")
-            response = modObjects[id].updateMod()  
+            response = x.updateMod()  
             if response[0]:
-                addLog("Mod update for " + str(modObjects[id].modName) + " was successsful!")
+                addLog("Mod update for " + str(x.modName) + " was successsful!")
                 successful+=1
             else:
-                addLog("Mod update for " + str(modObjects[id].modName) + " had failed.")
+                addLog("Mod update for " + str(x.modName) + " had failed.")
                 addLog(response[1])
                 unsuccessful+=1
-            addLog("Finished updating all mods. Successful updates: " + str(successful) + "/" + str(unsuccessful+successful))
+        addLog("Finished updating all mods. Successful updates: " + str(successful) + "/" + str(unsuccessful+successful))
 
     def patchAllMods(self):
         successful = 0
         unsuccessful = 0
         for x in modObjects:
             addLog("Patching all mods...")
-            response = modObjects[id].updateMod()  
-            if response[0]:
-                addLog("Patch for " + str(modObjects[id].modName) + " was successsful!")
+            response = x.patchCRC()  
+            if response == 1:
+                addLog("Patch for " + str(x.modName) + " was successsful!")
                 successful+=1
             else:
-                addLog("Patch for " + str(modObjects[id].modName) + " had failed.")
-                addLog(response[1])
+                addLog("Patch for " + str(x.modName) + " had failed.")
                 unsuccessful+=1
-            addLog("Finished patching all mods. Successful patches: " + str(successful) + "/" + str(unsuccessful+successful))
+        addLog("Finished patching all mods. Successful patches: " + str(successful) + "/" + str(unsuccessful+successful))
     
     def deleteTranslations(self):
         Storage.deleteTranslations()
@@ -282,8 +281,7 @@ html_data = html_data.replace(r"-defaultGameDir-", modClass.GAME_LOCATION)
 def main():
     global window
     modManagerBackend = modLoading()
-    window = webview.create_window("My App", html=html_data, js_api=modManagerBackend, width=800, height=800)
-    window.events.resized += on_resized
+    window = webview.create_window("My App", html=html_data, js_api=modManagerBackend, width=800, height=800, resizable=False)
     webview.start()
 
 def addLog(log):
