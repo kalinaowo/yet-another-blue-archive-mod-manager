@@ -1,5 +1,4 @@
 import binascii
-import os
 from pathlib import Path
 
 def bytes_to_u32_be(b):

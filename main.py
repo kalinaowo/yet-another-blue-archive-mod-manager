@@ -3,7 +3,6 @@ import os
 import modClass
 import Storage
 import json
-import time
 import base64
 
 window = None

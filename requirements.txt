@@ -1,0 +1,4 @@
+requests
+UnityPy
+Pillow
+pywebview

@@ -1,9 +1,5 @@
 # update_executor.py
-
-import sys
 from pathlib import Path
-import os
-import shutil
 
 
 from processing import find_new_bundle_path, process_mod_update

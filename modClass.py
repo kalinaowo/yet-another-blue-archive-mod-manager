@@ -2,8 +2,6 @@ import os
 import CRC_tool
 import shutil
 import Storage
-import requests
-import json
 import mainUpdater
 
 MOD_DIRECTORY = "\\..\\BA Mod Manager\\mod"

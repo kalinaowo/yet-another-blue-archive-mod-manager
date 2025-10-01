@@ -1,6 +1,4 @@
 # utils.py
-
-import tkinter as tk
 import binascii
 
 class CRCUtils:
