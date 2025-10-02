@@ -9,7 +9,12 @@ to resolve the other issue with model updates.
 - Added zh translation (Chinese)
 - Fixed a lot of bugs, including most bugs 
 - Lots of changes to UI to handle large file names better.
-- Fixes the fact that v0.1b1 was completely broken, oops (pls dont be broken)
+- Fixes the fact that v0.1b1 was completely broken, oops (pls dont be broken).
+
+Whats next for v0.1b3:
+ - Making the code more ~~less horrid~~ more friendly.
+ - Perhaps add more translations.
+ - Adding contribution menu in settings.
 
 ## Features:
  - Creates basic mod loading system
