@@ -15,7 +15,7 @@ to resolve the other issue with model updates.
  - Creates basic mod loading system
  - Backs up / Load original bundles 
  - Automatically patches CRC using the actual game's bundle file
- - Update broken mods after major game update
+ - Update broken mods after major game update, from Agent-0808 [BA-Modding-Toolkit](https://github.com/Agent-0808/BA-Modding-Toolkit)
  - Renaming / managing mods
  - Chinese translation
 
@@ -32,6 +32,10 @@ Please feel free to make an issue to report a bug, this project is in beta after
  - Preview images ? (Making the app wider to allow for this)
  - Support different languages (Japanese/Chinese)
  - Changing color theme
+
+
+## Huge thanks:
+Agent-0808: Updating mods with [BA-Modding-Toolkit](https://github.com/Agent-0808/BA-Modding-Toolkit)
 
 ## Development:
 <pre>
