@@ -1,5 +1,4 @@
 # processing.py
-
 import UnityPy
 import os
 import traceback
@@ -8,7 +7,7 @@ from PIL import Image
 import shutil
 import re
 
-from utils import CRCUtils
+from utils.BA_Modding_Tools.utils import CRCUtils
 
 def load_bundle(bundle_path: Path, log):
     """
@@ -19,7 +18,6 @@ def load_bundle(bundle_path: Path, log):
 
     # 1. 尝试直接加载
     try:
-        log("  > 尝试直接加载...")
         env = UnityPy.load(str(bundle_path))
         log("  ✅ 直接加载成功。")
         return env
@@ -44,10 +42,9 @@ def load_bundle(bundle_path: Path, log):
     for bytes_num in bytes_to_remove:
         if len(data) > bytes_num:
             try:
-                log(f"  > 尝试移除末尾{bytes_num}字节后加载...")
                 trimmed_data = data[:-bytes_num]
                 env = UnityPy.load(trimmed_data)
-                log(f"  ✅ 成功加载")
+                log(f"  ✅ 尝试移除末尾{bytes_num}字节后成功加载")
                 return env
             except Exception as e:
                 log(f"  > 移除{bytes_num}字节后加载失败: {e}")
@@ -67,7 +64,7 @@ def create_backup(original_path: Path, log, backup_mode: str = "default") -> boo
         if backup_mode == "b2b":
             backup_path = original_path.with_name(f"orig_{original_path.name}")
         else:
-            backup_path = original_path.with_name(f"orig_{original_path.name}")
+            backup_path = original_path.with_suffix(original_path.suffix + '.bak')
         
         log(f"正在备份原始文件到: {backup_path.name}")
         shutil.copy2(original_path, backup_path)
@@ -95,16 +92,14 @@ def save_bundle(env: UnityPy.Environment, output_path: Path, log) -> bool:
         log(traceback.format_exc())
         return False
 
-def process_png_replacement(bundle_path: Path, image_folder: Path, output_path: Path, log, create_backup_file: bool = True):
+def process_png_replacement(target_bundle_path: Path, image_folder: Path, working_dir: Path, enable_padding: bool, perform_crc: bool, log):
     """
-    从PNG文件夹替换贴图
+    从PNG文件夹替换贴图，并根据选项执行CRC修正。
+    此函数将生成的文件保存在工作目录中，以便后续进行“覆盖原文件”操作。
+    返回 (是否成功, 状态消息) 的元组。
     """
     try:
-        if create_backup_file:
-            if not create_backup(bundle_path, log):
-                return False, "创建备份失败，操作已终止。"
-
-        env = load_bundle(bundle_path, log)
+        env = load_bundle(target_bundle_path, log)
         if not env:
             return False, "无法加载目标 Bundle 文件，即使在尝试移除潜在的 CRC 补丁后也是如此。请检查文件是否损坏。"
         
@@ -138,7 +133,6 @@ def process_png_replacement(bundle_path: Path, image_folder: Path, output_path: 
                             log(f"    ✅ 成功: 资源 '{data.m_Name}' 已被替换。")
                             replacement_count += 1
                             task_to_remove = (asset_name, image_path)
-                            img.close()
                             break 
                         except Exception as e:
                             log(f"    ❌ 错误: 替换资源 '{asset_name}' 时发生错误: {e}")
@@ -157,11 +151,41 @@ def process_png_replacement(bundle_path: Path, image_folder: Path, output_path: 
             for asset_name, _ in replacement_tasks:
                 log(f"  - {asset_name}")
 
-        if save_bundle(env, output_path, log):
-            log("\n🎉 处理完成！")
-            return True, f"处理完成！\n成功替换 {replacement_count} 个资源。\n\n文件已保存至:\n{output_path}"
+        final_path = working_dir / target_bundle_path.name
+
+        if perform_crc:
+            log(f"\n--- 阶段 2: CRC修正 ---")
+            log(f"  > 准备直接保存并修正CRC...")
+            
+            # 先保存未修正CRC的文件到最终路径
+            if not save_bundle(env, final_path, log):
+                return False, "保存文件失败，操作已终止。"
+            
+            log(f"  > 原始文件 (用于CRC校验): {target_bundle_path}")
+            log(f"  > 待修正文件: {final_path}")
+            
+            # 直接对最终文件进行CRC修正
+            is_crc_success = CRCUtils.manipulate_crc(target_bundle_path, final_path, enable_padding)
+
+            if not is_crc_success:
+                if final_path.exists():
+                    try:
+                        final_path.unlink()
+                        log(f"  > 已删除失败的CRC修正文件: {final_path}")
+                    except OSError as e:
+                        log(f"  > 警告: 清理失败的CRC修正文件时出错: {e}")
+                return False, f"CRC 修正失败。最终文件 '{final_path}' 未能生成。"
+            
+            log("✅ CRC 修正成功！")
         else:
-            return False, "保存文件失败，请检查日志获取详细信息。"
+            log(f"\n--- 阶段 2: 保存最终文件 ---")
+            log(f"  > 准备直接保存最终文件...")
+            if not save_bundle(env, final_path, log):
+                return False, "保存最终文件失败，操作已终止。"
+
+        log(f"最终文件已保存至: {final_path}")
+        log(f"\n🎉 处理完成！")
+        return True, f"处理完成！\n成功替换 {replacement_count} 个资源。\n\n文件已保存至工作目录，现在可以点击“覆盖原文件”按钮应用更改。"
 
     except Exception as e:
         log(f"\n❌ 严重错误: 处理 bundle 文件时发生错误: {e}")
@@ -171,75 +195,89 @@ def process_png_replacement(bundle_path: Path, image_folder: Path, output_path: 
 def _b2b_replace(old_bundle_path: Path, new_bundle_path: Path, log, asset_types_to_replace: set):
     """
     执行 Bundle-to-Bundle 的核心替换逻辑。
+    按顺序尝试多种匹配策略（path_id, name_type），一旦有策略成功替换了至少一个资源，就停止并返回结果。
     返回一个元组 (modified_env, replacement_count)，如果失败则 modified_env 为 None。
     """
+    # 1. 加载 bundles
     log(f"正在从旧版 bundle 中提取指定类型的资源: {', '.join(asset_types_to_replace)}")
     old_env = load_bundle(old_bundle_path, log)
     if not old_env:
         return None, 0
     
-    old_assets_map = {}
-    for obj in old_env.objects:
-        # 根据传入的类型集合进行筛选
-        if obj.type.name in asset_types_to_replace:
-            data = obj.read()
-            # 对于 Texture2D 类型，只提取其图像内容 (PIL.Image 对象)
-            # 保留目标文件中的格式等元数据
-            if obj.type.name == "Texture2D":
-                old_assets_map[data.m_Name] = (obj.type.name, data.image)
-            # 对于其他类型的资源，仍然使用原始数据替换的旧方法
-            else:
-                old_assets_map[data.m_Name] = (obj.type.name, obj.get_raw_data())
-    
-    if not old_assets_map:
-        log(f"⚠️ 警告: 在旧版 bundle 中没有找到任何指定类型的资源 ({', '.join(asset_types_to_replace)})。")
-        return None, 0
-
-    log(f"提取完成，共找到 {len(old_assets_map)} 个可替换资源。")
-
-    log("\n正在扫描新版 bundle 并进行替换...")
+    log("正在加载新版 bundle...")
     new_env = load_bundle(new_bundle_path, log)
     if not new_env:
         return None, 0
 
-    replacement_count = 0
-    replaced_assets = []
-    for obj in new_env.objects:
-        if obj.type.name in asset_types_to_replace:
-            new_data = obj.read()
-            if new_data.m_Name in old_assets_map:
-                old_type_name, old_content = old_assets_map[new_data.m_Name]
-                
-                # 安全检查：确保资源类型匹配
-                if obj.type.name != old_type_name:
-                    log(f"    ⚠️ 警告: 资源 '{new_data.m_Name}' 类型不匹配 (新: {obj.type.name}, 旧: {old_type_name})。已跳过。")
-                    continue
+    # 定义匹配策略
+    # 每个策略是一个元组: (策略名, 获取资源key的函数)
+    strategies = [
+        (
+            'path_id',  # 根据path_id来匹配
+            lambda obj, data: obj.path_id
+        ),
+        (
+            'name_type', # 根据资源名称和类型来匹配
+            lambda obj, data: (data.m_Name, obj.type.name)
+        )
+    ]
 
-                log(f"  > 找到匹配资源 '{new_data.m_Name}' (类型: {obj.type.name})，准备从旧版恢复...")
-                try:
-                    # 对 Texture2D 进行特殊处理，保留目标文件中的格式等元数据
-                    if obj.type.name == "Texture2D":
-                        old_image = old_content
-                        new_data.image = old_image
-                        new_data.save()
-                        log(f"    ✅ 成功: 资源 '{new_data.m_Name}' 的图像内容已恢复，以 {new_data.m_TextureFormat.name} 格式保存。")
-                    # 对于其他资源类型，保持原有的原始数据替换逻辑
-                    else:
-                        # old_content 此处是原始字节数据
-                        obj.set_raw_data(old_content)
-                        log(f"    ✅ 成功: 资源 '{new_data.m_Name}' 的原始数据已被恢复。")
+    for name, key_func in strategies:
+        log(f"正在尝试使用 '{name}' 策略进行匹配")
+        
+        # 2. 根据当前策略从旧版 bundle 提取资源
+        old_assets_map = {}
+        for obj in old_env.objects:
+            if obj.type.name in asset_types_to_replace:
+                data = obj.read()
+                asset_key = key_func(obj, data)
+                content = data.image if obj.type.name == "Texture2D" else obj.get_raw_data()
+                old_assets_map[asset_key] = content
+        
+        if not old_assets_map:
+            log(f"  > ⚠️ 警告: 使用 '{name}' 策略未在旧版 bundle 中找到任何指定类型的资源。")
+            continue
 
-                    replacement_count += 1
-                    replaced_assets.append(f"{new_data.m_Name} ({obj.type.name})")
-                except Exception as e:
-                    log(f"    ❌ 错误: 恢复资源 '{new_data.m_Name}' 时发生错误: {e}")
+        log(f"  > 使用 '{name}' 策略从旧版 bundle 提取了 {len(old_assets_map)} 个资源。")
 
-    if replacement_count > 0:
-        log(f"\n成功恢复/替换了 {replacement_count} 个资源:")
-        for name in replaced_assets:
-            log(f"  - {name}")
-    
-    return new_env, replacement_count
+        # 3. 根据当前策略执行替换
+        replacement_count = 0
+        replaced_assets_log = []
+        
+        for obj in new_env.objects:
+            if obj.type.name in asset_types_to_replace:
+                new_data = obj.read()
+                asset_key = key_func(obj, new_data)
+
+                if asset_key in old_assets_map:
+                    old_content = old_assets_map[asset_key]
+                    try:
+                        if obj.type.name == "Texture2D":
+                            new_data.image = old_content
+                            new_data.save()
+                        else:
+                            obj.set_raw_data(old_content)
+                        
+                        replacement_count += 1
+                        log_msg = f"{new_data.m_Name} ({obj.type.name}, key: {asset_key})"
+                        replaced_assets_log.append(log_msg)
+                        log(f"  ✅ 成功替换: {log_msg}")
+
+                    except Exception as e:
+                        log(f"  ❌ 错误: 替换资源 '{new_data.m_Name}' ({obj.type.name}类型)时发生错误: {e}")
+
+        # 4. 如果当前策略成功替换了至少一个资源，就结束
+        if replacement_count > 0:
+            log(f"\n策略 '{name}' 成功替换了 {replacement_count} 个资源:")
+            for item in replaced_assets_log:
+                log(f"  - {item}")
+            return new_env, replacement_count
+
+        log(f"  > 策略 '{name}' 未能匹配到任何资源。")
+
+    # 5. 所有策略都失败了
+    log(f"\n⚠️ 警告: 所有匹配策略均未能在新版 bundle 中找到可替换的资源 ({', '.join(asset_types_to_replace)})。")
+    return None, 0
 
 def process_bundle_to_bundle_replacement(new_bundle_path: Path, old_bundle_path: Path, output_path: Path, log, create_backup_file: bool = True):
     """
@@ -278,29 +316,53 @@ def find_new_bundle_path(old_mod_path: Path, game_resource_dir: Path, log):
     根据旧版Mod文件，在游戏资源目录中智能查找对应的新版文件。
     返回 (找到的路径对象, 状态消息) 的元组。
     """
+    # TODO: 只用Texture2D比较好像不太对，但是it works
 
-    log(f"正在为 '{old_mod_path.name}' 搜索新版文件...")
+    log(f"正在为 '{old_mod_path.name}' 搜索对应文件...")
 
-    # 1. 通过日期模式确定文件名前缀
+    # 1. 通过日期模式确定文件名位置
     date_match = re.search(r'\d{4}-\d{2}-\d{2}', old_mod_path.name)
     if not date_match:
         msg = f"无法在旧文件名 '{old_mod_path.name}' 中找到日期模式 (YYYY-MM-DD)，无法确定用于匹配的文件前缀。"
         log(f"  > 失败: {msg}")
         return None, msg
 
+    # 2. 向前查找可能的日服额外文件名部分
     prefix_end_index = date_match.start()
-    search_prefix = old_mod_path.name[:prefix_end_index]
-    log(f"  > 已确定文件名前缀: '{search_prefix}...'")
+    
+    # 查找日期模式之前的最后一个连字符分隔的部分
+    # 例如在 "...-textures-YYYY-MM-DD..." 中的 "textures"
+    before_date = old_mod_path.name[:prefix_end_index]
+    
+    # 如果日期模式前有连字符，尝试提取最后一个部分
+    if before_date.endswith('-'):
+        before_date = before_date[:-1]  # 移除末尾的连字符
+    
+    # 分割并获取最后一个部分
+    parts = before_date.split('-')
+    last_part = parts[-1] if parts else ''
+    
+    # 检查最后一个部分是否是日服版额外的资源类型
+    resource_types = ['textures', 'assets', 'textassets', 'materials']
+    
+    if last_part.lower() in resource_types:
+        # 如果找到了资源类型，则前缀不应该包含这个部分
+        search_prefix = before_date.replace(f'-{last_part}', '') + '-'
+    else:
+        search_prefix = old_mod_path.name[:prefix_end_index]
+    
+    log(f"  > 使用前缀: '{search_prefix}'")
+    extension = '.bundle'
 
-    # 2. 查找所有候选文件
-    candidates = [f for f in game_resource_dir.iterdir() if f.is_file() and f.name.startswith(search_prefix)]
+    # 3. 查找所有候选文件（前缀相同且扩展名一致）
+    candidates = [f for f in game_resource_dir.iterdir() if f.is_file() and f.name.startswith(search_prefix) and f.suffix == extension]
     if not candidates:
-        msg = f"在游戏资源目录中未找到任何与 '{search_prefix}' 匹配的新版文件。"
+        msg = f"在指定目录 '{game_resource_dir}' 中未找到任何匹配的文件。"
         log(f"  > 失败: {msg}")
         return None, msg
     log(f"  > 找到 {len(candidates)} 个候选文件，正在验证内容...")
 
-    # 3. 加载旧Mod获取贴图列表
+    # 4. 加载旧Mod获取贴图列表
     old_env = load_bundle(old_mod_path, log)
     if not old_env:
         msg = "加载旧版Mod文件失败。"
@@ -315,7 +377,7 @@ def find_new_bundle_path(old_mod_path: Path, game_resource_dir: Path, log):
         return None, msg
     log(f"  > 旧版Mod包含 {len(old_textures_map)} 个贴图资源。")
 
-    # 4. 遍历候选文件，找到第一个包含匹配贴图的
+    # 5. 遍历候选文件，找到第一个包含匹配贴图的
     for candidate_path in candidates:
         log(f"    - 正在检查: {candidate_path.name}")
         try:
@@ -325,7 +387,7 @@ def find_new_bundle_path(old_mod_path: Path, game_resource_dir: Path, log):
             for obj in env.objects:
                 if obj.type.name == "Texture2D" and obj.read().m_Name in old_textures_map:
                     msg = f"成功确定新版文件: {candidate_path.name}"
-                    log(f"  > ✅ {msg}")
+                    log(f"  ✅ {msg}")
                     return candidate_path, msg
         except Exception:
             log(f"    - 警告: 无法加载候选文件 {candidate_path.name}, 已跳过。")
@@ -336,10 +398,18 @@ def find_new_bundle_path(old_mod_path: Path, game_resource_dir: Path, log):
     return None, msg
 
 
-def process_mod_update(old_mod_path: Path, new_bundle_path: Path, working_dir: Path, enable_padding: bool, log, perform_crc: bool, asset_types_to_replace: set):
+def process_mod_update(
+    old_mod_path: Path,
+    new_bundle_path: Path,
+    working_dir: Path,
+    enable_padding: bool,
+    log,
+    perform_crc: bool,
+    asset_types_to_replace: set):
     """
     自动化Mod更新流程。
-    此版本直接接收旧版Mod路径和新版资源路径，并且将文件保存在指定的working_dir下。
+    接收旧版Mod路径和新版资源路径，将生成文件保存在指定的working_dir下。
+    返回 (是否成功, 状态消息) 的元组。
     """
     try:
         log(f"  > 使用旧版 Mod: {old_mod_path.name}")
@@ -364,34 +434,27 @@ def process_mod_update(old_mod_path: Path, new_bundle_path: Path, working_dir: P
         final_path = working_dir / new_bundle_path.name
 
         if perform_crc:
-            uncrc_path = working_dir / f"uncrc_{new_bundle_path.name}"
-            log(f"\n--- 阶段 2: 保存与CRC修正 ---")
-            log(f"  > 准备保存未修正CRC的中间文件...")
+            log(f"\n--- 阶段 2: CRC修正 ---")
+            # 先保存未修正CRC的文件到最终路径
+            if not save_bundle(modified_env, final_path, log):
+                return False, "保存文件失败，操作已终止。"
             
-            if not save_bundle(modified_env, uncrc_path, log):
-                return False, "保存中间文件失败，操作已终止。"
-
-            log(f"  > 正在复制 '{uncrc_path.name}' 到 '{final_path.name}' 以进行CRC修正。")
-            shutil.copy2(uncrc_path, final_path)
+            log(f"  > 原始文件 (用于CRC校验): {new_bundle_path}")
+            log(f"  > 待修正文件: {final_path}")
             
-            log(f"  > 原始文件 (用于CRC校验): {new_bundle_path.name}")
-            log(f"  > 待修正文件: {final_path.name}")
-            
-            # 执行CRC修正
+            # 直接对最终文件进行CRC修正
             is_crc_success = CRCUtils.manipulate_crc(new_bundle_path, final_path, enable_padding)
 
             if not is_crc_success:
                 if final_path.exists():
                     try:
                         final_path.unlink()
-                        log(f"  > 已删除失败的CRC修正文件: {final_path.name}")
+                        log(f"  > 已删除失败的CRC修正文件: {final_path}")
                     except OSError as e:
                         log(f"  > 警告: 清理失败的CRC修正文件时出错: {e}")
                 return False, f"CRC 修正失败。最终文件 '{final_path.name}' 未能生成。"
             
             log("✅ CRC 修正成功！")
-            
-            log(f"未修正CRC的文件已保存: {uncrc_path}")
 
         else:
             log(f"\n--- 阶段 2: 保存最终文件 ---")

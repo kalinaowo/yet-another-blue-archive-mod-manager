@@ -1,12 +1,35 @@
 import webview
 import os
-import modClass
-import Storage
+import utils.modClass as modClass
+import utils.Storage as Storage
 import json
 import base64
+import gettext
+from assets import HTMLTranslations
 
 window = None
 modObjects = None
+LANGUAGE = "en"
+
+DOMAIN = 'messages' 
+LOCALE_DIR = os.path.join(os.path.dirname(__file__), 'locales')
+
+def set_language(lang_code):
+    try:
+        translation = gettext.translation(
+            domain=DOMAIN,
+            localedir=LOCALE_DIR,
+            languages=[lang_code],
+            fallback=True
+        )
+    except FileNotFoundError:
+        translation = gettext.NullTranslations()
+    translation.install()
+set_language(LANGUAGE)
+
+import builtins
+global _
+_ = builtins._
 
 class modLoading:
     def loadMod(self, PATH):
@@ -18,7 +41,7 @@ class modLoading:
         if MOD_PATH == "mod" and not os.path.exists(MOD_PATH):
             os.mkdir(MOD_PATH)
         if not os.path.exists(MOD_PATH):
-            addLog("Invalid Path")
+            addLog(_("Invalid Path"))
             return "Invalid Mod Path!"
         
         modClass.MOD_DIRECTORY = MOD_PATH
@@ -31,14 +54,14 @@ class modLoading:
             if not newMod.isValid:
                 if x != "backup" and x != "desktop.ini" and x != "mod_data.json" and x != "student_names.json":
                     invalidMods += 1
-                    addLog("Failed to load mod with path: " + str(x))
+                    addLog(_("Failed to load mod with path: ") + str(x))
                 continue
             validMods += 1
             modObjects.append(newMod)
-        addLog("Loading completed! Mods loaded successfully: " + str(validMods) + "/" + str(invalidMods+validMods))
+        addLog(_("Loading completed! Mods loaded successfully: ") + str(validMods) + "/" + str(invalidMods+validMods))
         self.sendModNames()
         Storage.addData("mod_path", MOD_PATH)
-        return "Mods loaded: " + str(validMods) + "/" + str(invalidMods+validMods)
+        return _("Mods loaded: ") + str(validMods) + "/" + str(invalidMods+validMods)
     
     def sendModNames(self):
         modNames = []
@@ -84,47 +107,47 @@ class modLoading:
         for i, x in enumerate(modOptions):
             print(i)
             applyThisMod = False
-            if x == "On":
+            if x == "On" or x == "在":
                 applyThisMod = True
             
             if applyThisMod:
                 addLog("-----")
                 status = modObjects[i].backupRealBundle()
                 if status == -1:
-                    addLog("A error occured when backing up mod " + modObjects[i].modName + ", mod will not be applied...")
+                    addLog(_("A error occured when backing up mod ") + modObjects[i].modName + _(", mod will not be applied..."))
                     failedApplications+=1
                     applicationStatus.append("Fail")
                     continue
                 elif status == 1:
-                    addLog("Successfully backed up mod: " + modObjects[i].modName)
+                    addLog(_("Successfully backed up mod: ") + modObjects[i].modName)
                 else:
-                    addLog("Backup already exists for mod: " + modObjects[i].modName + " skipping backup creation.")
+                    addLog(_("Backup already exists for mod: ") + modObjects[i].modName)
                 status = modObjects[i].patchCRC()
                 if status == -2:
-                    addLog("CRC patch cannot be applied for mod: " + modObjects[i].modName + ", it seems like the mod has already been applied, skipping mod application to avoid CRC corruption")
+                    addLog(_("It seems like the mod has already been applied, skipping patching and mod application to avoid corruption") + modObjects[i].modName)
                     failedApplications+=1
                     applicationStatus.append("Fail")
                     continue
                 elif status == -1:
-                    addLog("A error occured when applying the CRC for mod " + modObjects[i].modName + ".")
+                    addLog(_("A error occured when applying the CRC for mod ") + modObjects[i].modName)
                     failedApplications+=1
                     applicationStatus.append("Fail")
                     continue
                 else:
-                    addLog("Successfully patched CRC for mod " + modObjects[i].modName)
+                    addLog(_("Successfully patched CRC for mod ") + modObjects[i].modName)
                 status = modObjects[i].applyMod()
                 if status == -1:
-                    addLog("A error occured when applying mod " + modObjects[i].modName + ", backup will be automatically restored.")
+                    addLog(_("A error occured when applying mod ") + modObjects[i].modName + _(", backup will be automatically restored."))
                     applicationStatus.append("Fail")
                     modObjects[i].restoreOriginalBundle()
                     failedApplications+=1
                     continue
-                addLog("Mod " + modObjects[i].modName + " successfully applied!")
+                addLog(_("Mod ") + modObjects[i].modName + _(" successfully applied!"))
                 applicationStatus.append("Success")
                 successfulApplications+=1
                 modObjects[i].isApplied = True
         addLog("=====")
-        addLog("Finished applying mods, amount successful: " + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
+        addLog(_("Finished applying mods, amount successful: ") + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
         addLog("=====")
         return applicationStatus
     
@@ -135,32 +158,36 @@ class modLoading:
         applicationStatus = []
         for i, x in enumerate(modOptions):
             applyThisMod = False
-            if x == "On":
+            if x == "On" or x == "在":
                 applyThisMod = True
             if applyThisMod:
+                if not modObjects[i].isApplied:
+                    failedApplications+=1
+                    applicationStatus.append(_("Fail"))
+                    continue
                 status = modObjects[i].restoreOriginalBundle()
                 if status == -1:
-                    addLog("Mod " + modObjects[i].modName + " cannot be restored, no backup files found! You can verifiy integrity of game files in Steam to obtain the original bundle file (all mods will be removed however.)")
+                    addLog(_("Mod ") + modObjects[i].modName + _(" cannot be restored, no backup files found! You can verifiy integrity of game files in Steam to obtain the original bundle file (all mods will be removed however.)"))
                     failedApplications+=1
-                    applicationStatus.append("Restore Fail")
+                    applicationStatus.append(_("Fail"))
                     continue
                 else:
-                    addLog("Mod " + modObjects[i].modName + " successfully restored!")
+                    addLog(_("Mod ") + modObjects[i].modName + _(" successfully restored!"))
                 successfulApplications+=1
                 applicationStatus.append("Success")
         addLog("=====")
-        addLog("Finished restoring mods, amount successful: " + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
+        addLog(_("Finished restoring mods, amount successful: ") + str(successfulApplications) + "/" + str(failedApplications+successfulApplications))
         addLog("=====")
         return applicationStatus
     
     def patchCRC(self, modID):
         status = modObjects[modID].patchCRC()
         if status == -2:
-            addLog("CRC patch for mod " + modObjects[modID].modName + " failed, mod is applied and a CRC patch may corrupt the CRC")
+            addLog(_("CRC patch for mod ") + modObjects[modID].modName + _(" failed, mod is applied and a CRC patch may corrupt the CRC"))
         elif status == -1:
-            addLog("CRC patch for mod " + modObjects[modID].modName + " failed, an error occured.")
+            addLog(_("CRC patch for mod ") + modObjects[modID].modName + _(" failed, an error occured."))
         else:
-            addLog("Successfully applied patch for mod " + modObjects[modID].modName)
+            addLog(_("Successfully applied patch for mod ") + modObjects[modID].modName)
 
     def recieveFileData(self, fileData):
         for x in fileData:
@@ -176,89 +203,93 @@ class modLoading:
                         with open(output_path, "wb") as f:
                             f.write(data_bytes)
                     except Exception as e:
-                        print("Error processing file: "+ str(e))
+                        print(e)
                     newMod = modClass.mod(x["name"])
                     if not newMod.isValid:
-                        addLog("The file with path " + x["name"] + " does not appear to be a valid mod!")
+                        addLog(_("The file with path ") + x["name"] + _(" does not appear to be a valid mod!"))
                         os.remove(os.path.join(modClass.MOD_DIRECTORY,x["name"]))
                         continue
                     modObjects.append(newMod)
-                    addLog("Successfully added mod " + str(newMod.modName))
+                    addLog(_("Successfully added mod ") + str(newMod.modName))
                 except Exception as e:
                     print(e)
-                    addLog("An error ocurred when processing file: " + str(x["name"]))
+                    addLog(_("An error ocurred when processing file: ") + str(x["name"]))
             else:
-                addLog("The file with path " + x["name"] + " does not appear to be a valid mod!")
+                addLog(_("The file with path ") + x["name"] + _(" does not appear to be a valid mod!"))
         self.sendModNames()
 
     def updateMod(self, id):
-        addLog("Starting mod update for " + modObjects[id].modName + "..., this may take some time.")
+        addLog(_("Starting mod update for ") + modObjects[id].modName + _("..., this may take some time."))
         response = modObjects[id].updateMod()  
         if response[0]:
-            addLog("Mod update for " + str(modObjects[id].modName) + " was successsful!")
+            addLog(_("Mod update for ") + str(modObjects[id].modName) + _(" was successsful!"))
         else:
-            addLog("Mod update for " + str(modObjects[id].modName) + " had failed.")
+            addLog(_("Mod update for ") + str(modObjects[id].modName) + _(" had failed."))
             addLog(response[1])
     
     def submitGameDir(self, newDir):
         if not os.path.exists(newDir):
-            addLog("New game directory path does not exist!")
+            addLog(_("New game directory path does not exist!"))
             return
         
         if not os.path.exists(os.path.join(newDir,"BlueArchive.exe")):
-            addLog("This folder does not seem to contain Blue Archive! Please add the folder with BlueArchive.exe")
+            addLog(_("This folder does not seem to contain Blue Archive! Please add the folder with BlueArchive.exe"))
             return
         
         modClass.GAME_LOCATION = newDir
         Storage.addData("default_game_directory", newDir)
-        addLog("Updated game directory!")
+        addLog(_("Updated game directory!"))
     
     def updateAllMods(self):
         successful = 0
         unsuccessful = 0
         for x in modObjects:
-            addLog("Updating all mods, this make take a while, do not close the window.")
+            addLog(_("Updating all mods, this make take a while, do not close the window."))
             response = x.updateMod()  
             if response[0]:
-                addLog("Mod update for " + str(x.modName) + " was successsful!")
+                addLog(_("Mod update for ") + str(x.modName) + _(" was successsful!"))
                 successful+=1
             else:
-                addLog("Mod update for " + str(x.modName) + " had failed.")
+                addLog(_("Mod update for ") + str(x.modName) +_( " had failed."))
                 addLog(response[1])
                 unsuccessful+=1
-        addLog("Finished updating all mods. Successful updates: " + str(successful) + "/" + str(unsuccessful+successful))
+        addLog(_("Finished updating all mods. Successful updates: ") + str(successful) + "/" + str(unsuccessful+successful))
 
     def patchAllMods(self):
         successful = 0
         unsuccessful = 0
         for x in modObjects:
-            addLog("Patching all mods...")
+            addLog(_("Patching all mods..."))
             response = x.patchCRC()  
             if response == 1:
-                addLog("Patch for " + str(x.modName) + " was successsful!")
+                addLog(_("Patch for ") + str(x.modName) + _(" was successsful!"))
                 successful+=1
             else:
-                addLog("Patch for " + str(x.modName) + " had failed.")
+                addLog(_("Patch for " + str(x.modName) + _(" had failed.")))
                 unsuccessful+=1
-        addLog("Finished patching all mods. Successful patches: " + str(successful) + "/" + str(unsuccessful+successful))
+        addLog(_("Finished patching all mods. Successful patches: ") + str(successful) + "/" + str(unsuccessful+successful))
     
     def deleteTranslations(self):
         Storage.deleteTranslations()
         if not os.path.exists("student_names.json"):
-            addLog("Deleted the mod translations, they will be reacquired the next time a path is loaded.")
+            addLog(_("Deleted the mod translations, they will be reacquired the next time a path is loaded."))
         else:
-            addLog("Something went wrong deleting the mod translations.")
+            addLog(_("Something went wrong deleting the mod translations."))
         
 
     def deleteAllModData(self):
         Storage.deleteStorage()
         if not os.path.exists("mod_data.json"):
-            addLog("Finished resetting the mod manager!")
+            addLog(_("Finished resetting the mod manager!"))
         else:
-            addLog("Something went wrong resetting the mod manager.")
+            addLog(_("Something went wrong resetting the mod manager."))
         self.loadMods(modClass.MOD_DIRECTORY)
         self.sendModNames()
 
+    def resetModName(self, id):
+        Storage.deleteModName(modObjects[id].modPath)
+        self.loadMods(modClass.MOD_DIRECTORY)
+        self.sendModNames()
 
 
 html_data = Storage.load_ui_asset()
@@ -274,6 +305,12 @@ if gameDir != None:
 
 html_data = html_data.replace(r"mod\\", storagePath)
 html_data = html_data.replace(r"-defaultGameDir-", modClass.GAME_LOCATION)
+
+toReplace = 0
+if LANGUAGE == "zh":
+    toReplace = 1
+for x in HTMLTranslations.translations:
+    html_data = html_data.replace(x, HTMLTranslations.translations[x][toReplace])
 
 def main():
     global window

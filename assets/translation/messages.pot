@@ -1,0 +1,208 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-01 17:51-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: main.py:42
+msgid "Invalid Path"
+msgstr ""
+
+#: main.py:55
+msgid "Failed to load mod with path: "
+msgstr ""
+
+#: main.py:59
+msgid "Loading completed! Mods loaded successfully: "
+msgstr ""
+
+#: main.py:62
+msgid "Mods loaded: "
+msgstr ""
+
+#: main.py:115
+msgid "A error occured when backing up mod "
+msgstr ""
+
+#: main.py:115
+msgid ", mod will not be applied..."
+msgstr ""
+
+#: main.py:120
+msgid "Successfully backed up mod: "
+msgstr ""
+
+#: main.py:122
+msgid "Backup already exists for mod: "
+msgstr ""
+
+#: main.py:125
+msgid ""
+"It seems like the mod has already been applied, skipping patching and mod"
+" application to avoid corruption"
+msgstr ""
+
+#: main.py:130
+msgid "A error occured when applying the CRC for mod "
+msgstr ""
+
+#: main.py:135
+msgid "Successfully patched CRC for mod "
+msgstr ""
+
+#: main.py:138
+msgid "A error occured when applying mod "
+msgstr ""
+
+#: main.py:138
+msgid ", backup will be automatically restored."
+msgstr ""
+
+#: main.py:143 main.py:164 main.py:169
+msgid "Mod "
+msgstr ""
+
+#: main.py:143
+msgid " successfully applied!"
+msgstr ""
+
+#: main.py:148
+msgid "Finished applying mods, amount successful: "
+msgstr ""
+
+#: main.py:164
+msgid ""
+" cannot be restored, no backup files found! You can verifiy integrity of "
+"game files in Steam to obtain the original bundle file (all mods will be "
+"removed however.)"
+msgstr ""
+
+#: main.py:166
+msgid "Fail"
+msgstr ""
+
+#: main.py:169
+msgid " successfully restored!"
+msgstr ""
+
+#: main.py:173
+msgid "Finished restoring mods, amount successful: "
+msgstr ""
+
+#: main.py:180 main.py:182
+msgid "CRC patch for mod "
+msgstr ""
+
+#: main.py:180
+msgid " failed, mod is applied and a CRC patch may corrupt the CRC"
+msgstr ""
+
+#: main.py:182
+msgid " failed, an error occured."
+msgstr ""
+
+#: main.py:184
+msgid "Successfully applied patch for mod "
+msgstr ""
+
+#: main.py:203 main.py:212
+msgid "The file with path "
+msgstr ""
+
+#: main.py:203 main.py:212
+msgid " does not appear to be a valid mod!"
+msgstr ""
+
+#: main.py:207
+msgid "Successfully added mod "
+msgstr ""
+
+#: main.py:210
+msgid "An error ocurred when processing file: "
+msgstr ""
+
+#: main.py:216
+msgid "Starting mod update for "
+msgstr ""
+
+#: main.py:216
+msgid "..., this may take some time."
+msgstr ""
+
+#: main.py:219 main.py:221 main.py:244 main.py:247
+msgid "Mod update for "
+msgstr ""
+
+#: main.py:219 main.py:244 main.py:259
+msgid " was successsful!"
+msgstr ""
+
+#: main.py:221 main.py:247 main.py:262
+msgid " had failed."
+msgstr ""
+
+#: main.py:226
+msgid "New game directory path does not exist!"
+msgstr ""
+
+#: main.py:230
+msgid ""
+"This folder does not seem to contain Blue Archive! Please add the folder "
+"with BlueArchive.exe"
+msgstr ""
+
+#: main.py:235
+msgid "Updated game directory!"
+msgstr ""
+
+#: main.py:241
+msgid "Updating all mods, this make take a while, do not close the window."
+msgstr ""
+
+#: main.py:250
+msgid "Finished updating all mods. Successful updates: "
+msgstr ""
+
+#: main.py:256
+msgid "Patching all mods..."
+msgstr ""
+
+#: main.py:259 main.py:262
+msgid "Patch for "
+msgstr ""
+
+#: main.py:264
+msgid "Finished patching all mods. Successful patches: "
+msgstr ""
+
+#: main.py:269
+msgid ""
+"Deleted the mod translations, they will be reacquired the next time a "
+"path is loaded."
+msgstr ""
+
+#: main.py:271
+msgid "Something went wrong deleting the mod translations."
+msgstr ""
+
+#: main.py:277
+msgid "Finished resetting the mod manager!"
+msgstr ""
+
+#: main.py:279
+msgid "Something went wrong resetting the mod manager."
+msgstr ""
+

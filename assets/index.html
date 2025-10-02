@@ -170,10 +170,39 @@
                 position: absolute;
                 transform: translate(-55%, -100%);
                 width: 30%;
-                height: 30vh;
                 background-color: #131314;
                 border-radius: 20px;
                 border: 0.5vw solid #a8c1fa;
+                padding: 1.5vh 1.5vw;
+                display: flex;   
+                flex-direction: column; 
+                align-items: center;
+                padding: 2vh 0;
+            }
+            #nameChanger button {
+                position: static;
+                top: initial;
+                left: initial;
+                margin: 1vh 0;
+                font-size: 2vw;
+            }
+
+            .modal-button-row {
+                display: flex;
+                justify-content: space-around; 
+                align-items: center;
+                width: 90%;
+                margin: 1.5vh auto;
+            }
+
+            #dim3 .modal-button-row button {
+                width: 20%; 
+                height: 4vh; 
+                font-size: 1.7vw; 
+                font-weight: 600;
+            }
+            #dim3 .modal-button-row:last-child button {
+                width: 40%;
             }
             .dim {
                 position: absolute;
@@ -188,9 +217,9 @@
             }
             .nameChangeText {
                 color: #a8c1fa;
-                position: relative;
-                left:2vw;
                 font-size: 2vw;
+                width: 90%; 
+                text-align: center; 
             }
             #nameChangeInput {
                 background-color: #282a2c;
@@ -207,9 +236,103 @@
                 font-weight: 400;
                 font-style: normal;
             }
+            #nameChanger button {
+                position: static !important;
+                top: initial !important;
+                margin: 0 0.5vw;
+            }
+
+            .settings-group {
+                width: 90%;
+                margin: 2vh 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .input-button-row {
+                display: flex;
+                align-items: center; 
+                justify-content: space-between; 
+                width: 94%; 
+                margin: 1vh auto; 
+            }
+
+            #gameDirInput {
+                height: 4vh; 
+                flex-grow: 1; 
+                flex-basis: 70%;
+                margin-right: 1.5vw; 
+                position: static !important; 
+                top: initial !important; 
+            }
+
+            .input-button-row button {
+                height: 4vh;
+                flex-shrink: 0;
+                width: 20%;
+                position: static !important;
+                top: initial !important;
+            }
+
+            .button-row {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                width: 100%;
+                margin: 1vh 0;
+            }
+
+            .button-row button {
+                height: 4vh; 
+                font-size: 1.7vw; 
+                font-weight: 600;
+            }
+            .button-row:first-child button {
+                width: 45%; 
+            }
+            .button-row:nth-child(2) button {
+                width: 50%; 
+            }
+
+            .close-group button {
+                width: 20%; 
+            }
+
+            #gameDirInput {
+                flex-grow: 1; 
+                margin-right: 1vw;
+            }
+
+            #nameChangeInput {
+                position: static !important; 
+                top: initial !important; 
+                
+                width: 90%;
+                margin-bottom: 3vh;
+                height: 4.4vh;
+            }
+            .rename-buttons {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                width: 50%;
+                margin-top: 2vh;
+            }
+
+            .rename-buttons button {
+                position: static !important;
+                top: initial !important;
+                height: 5vh;
+                width: auto;
+                font-size: clamp(15px, 1.7vw, 28px) !important;
+                font-weight: 600;
+                margin: 0 1vw; 
+            }
+
         </style>
         <script>
-            // a8c1fa, a8c1fa
+            // a8c1fa, 
             let currentMod = null;
             let allowModCopying = false;
             let modLength = 0;
@@ -261,9 +384,8 @@
                 let response = await window.pywebview.api.changeModName(document.getElementById("nameChangeInput").value,currentMod);
             }
             async function reset() {
-                document.getElementById("modTextID"+currentMod).textContent = realModName;
-                document.getElementById("characterNameText").textContent = realModName;
-                let response = await window.pywebview.api.changeModName(realModName, currentMod);
+                deleteModName();
+                closeProperties();
             }
             async function deleteMod() {
                 if (currentMod == null) {
@@ -287,11 +409,11 @@
                 closeProperties();
             }
             function toggleModButton(id) {
-                if (document.getElementById("modButtonID"+id).textContent == "On") {
-                    document.getElementById("modButtonID"+id).textContent = "Off";
+                if (document.getElementById("modButtonID"+id).textContent == "||On||") {
+                    document.getElementById("modButtonID"+id).textContent = "||Off||";
                 }
                 else {
-                    document.getElementById("modButtonID"+id).textContent = "On";
+                    document.getElementById("modButtonID"+id).textContent = "||On||";
                 }
 
             }
@@ -314,14 +436,14 @@
 
                 let propertiesButton = document.createElement("button");
                 propertiesButton.className = "modB";
-                propertiesButton.textContent = "Properties";
+                propertiesButton.textContent = "||Properties||";
                 propertiesButton.onclick = function() {
                     openPropertiesMenu(id);
                 };
 
                 let applyModButton = document.createElement("button");
                 applyModButton.className = "modB";
-                applyModButton.textContent = "On";
+                applyModButton.textContent = "||On||";
                 applyModButton.id = "modButtonID"+id;
                 applyModButton.onclick = function() {
                     toggleModButton(id);
@@ -348,8 +470,8 @@
             async function openPropertiesMenu(id) {
                 let modDetails = await window.pywebview.api.getModDetails(id);
                 document.getElementById("characterNameText").textContent = modDetails[0].toString();
-                document.getElementById("realCharacterNameText").textContent = "Character: " + modDetails[1].toString();
-                document.getElementById("isPrologdepengroupText").textContent = "Is Applied: " + modDetails[2].toString();
+                document.getElementById("realCharacterNameText").textContent = "||Character: ||" + modDetails[1].toString();
+                document.getElementById("isPrologdepengroupText").textContent = "||Is Applied: ||" + modDetails[2].toString();
                 currentMod = id
                 realModName = modDetails[1].toString();
                 document.getElementById("dim2").style.display = "flex";
@@ -367,7 +489,7 @@
 
                 dropzone.addEventListener("drop", async (e) => {
                     if(!allowModCopying) {
-                        addLog("Please select a valid path before copying files!")
+                        addLog("||Please select a valid path before copying files!||")
                         return;
                     }
                     e.preventDefault();
@@ -407,7 +529,7 @@
                 let response = await window.pywebview.api.applyMod(buttonStates);
                 i2 = 0
                 for(let i = 0; i < response.length;) {
-                    if(buttonStates[i+i2] == "On") {
+                    if(buttonStates[i+i2] == "||On||") {
                         document.getElementById("modStatusID" + (i+i2)).textContent = response[i];
                         i++;
                     }
@@ -424,7 +546,7 @@
                 let response = await window.pywebview.api.restoreSelectedMods(buttonStates);
                 i2 = 0
                 for(let i = 0; i < response.length;) {
-                    if(buttonStates[i+i2] == "On") {
+                    if(buttonStates[i+i2] == "||On||") {
                         document.getElementById("modStatusID" + (i+i2)).textContent = response[i];
                         i++;
                     }
@@ -448,81 +570,110 @@
             async function deleteAllModData() {
                 await window.pywebview.api.deleteAllModData()
             }
+            async function deleteModName() {
+                await window.pywebview.api.resetModName(currentMod);
+            }
         </script>
     </head>
     <body>
         <div id="topBar">
-            <p id="titleText"> Yet Another Blue Archive Mod Manager </p>
+            <p id="titleText"> ||Yet Another Blue Archive Mod Manager|| </p>
         </div>
         <div id="buttonsDiv">
             <div>
-                <input class="modFolderInput" id="modFolderInput" value="mod\\" placeholder="Click the open button to open a mod!">
-                <button id="openButton" onclick="selectFolder()">Open</button>
+                <input class="modFolderInput" id="modFolderInput" value="mod\\" placeholder="||Click the open button to open a mod!||">
+                <button id="openButton" onclick="selectFolder()">||Open||</button>
             </div>
 
             <div id="line"></div>
-            <p id="loadedText"> No Mods Loaded </p>
+            <p id="loadedText"> ||No Mods Loaded|| </p>
             
             <div>
-                <button style="top:3vh" id="openButton" onclick="loadUserMods()">Refresh</button>
-                <button style="top:3vh" id="openButton" onclick="applyUserMods()">Apply</button>
-                <button style="top:3vh" id="openButton" onclick="restoreUserMods()">Restore</button>
-                <button style="top:3vh" id="openButton" onclick="document.getElementById('dim3').style.display='flex'">Settings</button>
+                <button style="top:3vh" id="openButton" onclick="loadUserMods()">||Refresh||</button>
+                <button style="top:3vh" id="openButton" onclick="applyUserMods()">||Apply||</button>
+                <button style="top:3vh" id="openButton" onclick="restoreUserMods()">||Restore||</button>
+                <button style="top:3vh" id="openButton" onclick="document.getElementById('dim3').style.display='flex'">||Settings||</button>
             </div>
-            <p style="font-size: 2.3vh;" id="loadedText"> v0.1b1 - Made by Kalina </p>
-            <p style="font-size: 1.7vh;" id="loadedText"> Please remove all mods from Steam client before using, they may break patching, updating mods, and backups.</p>
+            <p style="font-size: 2.3vh;" id="loadedText"> v0.1b2 - ||Made by Kalina|| </p>
+            <p style="font-size: 1.7vh;" id="loadedText"> ||Please remove all mods from Steam client before using, they may break patching, updating mods, and backups.||</p>
 
         </div>
 
         <div id="logsDiv" class="styled-scrollbars"> </div>
 
         <div id="mainModListDiv" class="styled-scrollbars dropzone">
-            <p class="nameChangeText" id="characterNameText"> Drag a mod to this window add it! </p>
+            <p class="nameChangeText" id="characterNameText"> ||Drag a mod to this window add it!|| </p>
         </div>
 
 
-        <div class="dim" id="dim2" style="display: none;">
-            <div id="nameChanger">
+        <div class="dim" id="dim2" style="display: none">
+            <div id="nameChanger" style="position: relative; top: 10vh;">
                 <p class="nameChangeText" id="characterNameText" style="font-weight: bold;"> azusa my beloved </p>
-                <p class="nameChangeText" id="realCharacterNameText"> Character: azusa_swimsuit_home </p>
+                <p class="nameChangeText" id="realCharacterNameText"> ||Character: ||azusa_swimsuit_home </p>
                 <p class="nameChangeText" id="isPrologdepengroupText"> Is Applied: False </p>
-                <button style="top:1vh; width:20%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="openRenameMenu(currentMod)">Rename</button>
-                <button style="top:1vh; width:20%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="reset()">Reset</button>
-                <button style="top:1vh; width:20%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="deleteMod()">Delete</button>
-                <button style="top:1vh; width:20%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="closeProperties()">Cancel</button>
 
-                <button style="top:2.5vh; width:40%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="patchCRC()">Patch CRC</button>
-                <button style="top:2.5vh; width:40%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="updateMod()">Update Mod</button>
-            </div>
+                <div class="modal-button-row top-row">
+                    <button style="width:24%; height:15%" class="modal-button" onclick="openRenameMenu(currentMod)">||Rename||</button>
+                    <button style="width:22%; height:15%" class="modal-button" onclick="reset()">||Reset||</button>
+                    <button style="width:22%; height:15%" class="modal-button" onclick="deleteMod()">||Delete||</button>
+                    <button style="width:22%; height:15%" class="modal-button" onclick="closeProperties()">||Cancel||</button>
+                </div>
+                <div class="modal-button-row bottom-row">
+                    <button style="width:40%; height:15%" class="modal-button large-button" onclick="patchCRC()">||Patch CRC||</button>
+                    <button style="width:40%; height:15%" class="modal-button large-button" onclick="updateMod()">||Update Mod||</button>
+                </div>
+                </div>
         </div>
 
         <div class="dim" id="dim" style="display: none;">
-            <div id="nameChanger">
-                <p id="nameChangeText" class="nameChangeText"> Enter a new mod name </p>
-                <input id="nameChangeInput" placeholder="Enter a mod name" maxlength="20">
-                <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="applyModChange()">Apply</button>
-                <button style="top:9vh; width:20%; height:15%; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="cancelRenameMod()">Cancel</button>
+            <div id="nameChanger" class="rename-modal"> 
+                <p id="nameChangeText" class="nameChangeText"> ||Enter a new mod name|| </p>
+                
+                <input id="nameChangeInput" placeholder="||Enter a new mod name||" maxlength="20">
+                
+                <div class="button-row rename-buttons">
+                    <button onclick="applyModChange()">||Apply||</button>
+                    <button onclick="cancelRenameMod()">||Cancel||</button>
+                </div>
             </div>
         </div>
 
         <div class="dim" id="dim3" style="display: none;">
-            <div id="nameChanger" style="height:45vh; top:70vh">
-                <p class="nameChangeText" id="characterNameText" style="font-weight: bold;"> Settings </p>
-                <div id="line" style="top:-0.6vh"></div>
-                 <div style="top:-1.6vh; position: relative;">
-                     <p class="nameChangeText" style="font-weight: inital"> Game Directory </p>
-                    <input id="gameDirInput" class="modFolderInput" style="top:-1vh" value="-defaultGameDir-" placeholder="Default Game Directory">
-                    <button id="openButton" style="top:-1vh" onclick="selectFolderGameDir()">Open</button>
-                    <button style="width:20%; height:4vh; top:1vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="resetGameDir()">Reset</button>
-                    <button style="width:20%; height:4vh; top:1vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="submitGameDir()">Submit</button>
-                </div>
-                <div id="line" style="top:1.5vh"></div>
-                <button style="top:3.5vh; width:40%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="updateAllMods()">Update all mods</button>
-                <button style="top:3.5vh; width:40%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="patchAllMods()">Patch all mods</button>
-                <button style="top:4.5vh; width:45%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="deleteTranslations()">Delete translations</button>
-                <button style="top:4.5vh; width:40%; height:4vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="deleteAllModData()">Reset mod manager</button>
+            <div id="nameChanger" style="position: relative; top: 30vh;"> 
+                <p class="nameChangeText modal-title" style="font-weight: bold;">||Settings||</p>
+                
+                <div id="line" style="top:0vh"></div> 
 
-                <button style="width:20%; height:4vh; top:6.5vh; font-size: 1.7vw; font-weight:600;" id="openButton" onclick="document.getElementById('dim3').style.display='none'">Close</button>
+                <div class="settings-group game-dir-group">
+                    <p class="nameChangeText group-title" style="font-weight: initial"> ||Game Directory|| </p>
+                    
+                    <div class="input-button-row">
+                        <input id="gameDirInput" class="modFolderInput" value="-defaultGameDir-" placeholder="Default Game Directory">
+                        <button onclick="selectFolderGameDir()">||Open||</button>
+                    </div>
+                    
+                    <div class="button-row game-dir-buttons">
+                        <button onclick="resetGameDir()">||Reset||</button>
+                        <button onclick="submitGameDir()">||Submit||</button>
+                    </div>
+                </div>
+                
+                <div id="line" style="top:1.5vh"></div> 
+
+                <div class="settings-group action-group">
+                    <div class="button-row two-col-row">
+                        <button onclick="updateAllMods()">||Update all mods||</button>
+                        <button onclick="patchAllMods()">||Patch all mods||</button>
+                    </div>
+                    <div class="button-row two-col-row">
+                        <button style="height:20%" onclick="deleteTranslations()">||Delete translations||</button>
+                        <button style="height:20%" onclick="deleteAllModData()">||Reset mod manager||</button>
+                    </div>
+                </div>
+                
+                <div class="settings-group close-group">
+                    <button onclick="document.getElementById('dim3').style.display='none'">||Close||</button>
+                </div>
             </div>
         </div>
     </body>

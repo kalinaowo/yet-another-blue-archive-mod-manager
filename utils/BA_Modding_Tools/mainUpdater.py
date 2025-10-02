@@ -1,8 +1,5 @@
-# update_executor.py
 from pathlib import Path
-
-
-from processing import find_new_bundle_path, process_mod_update
+from utils.BA_Modding_Tools.processing import find_new_bundle_path, process_mod_update
 
 def console_log(message: str):
     """
@@ -22,13 +19,11 @@ def update_mod_function(old_mod_path_str: str, game_resource_dir_str: str, worki
     Returns:
         A tuple: (success: bool, message: str, final_file_path: Path | None)
     """
-    # --- 1. Path Setup and Validation ---
     old_mod_path = Path(old_mod_path_str)
     game_resource_dir = Path(game_resource_dir_str)
     working_dir = Path(working_dir_str)
     
-    # We will only replace Texture2D by default
-    asset_types_to_replace = {"Texture2D", "TextAsset"}
+    asset_types_to_replace = {"Texture2D", "TextAsset", "Mesh"}
     
     if not old_mod_path.is_file():
         return False, f"Error: Old Mod file not found: {old_mod_path}", None
@@ -39,7 +34,6 @@ def update_mod_function(old_mod_path_str: str, game_resource_dir_str: str, worki
     
     console_log(f"\n--- Mod Update Initiated ---")
     
-    # --- 2. Find the New Bundle ---
     console_log("\n[Step 1/3] Searching for the matching new game bundle...")
     new_bundle_path, find_msg = find_new_bundle_path(old_mod_path, game_resource_dir, console_log)
     
@@ -48,10 +42,8 @@ def update_mod_function(old_mod_path_str: str, game_resource_dir_str: str, worki
         
     console_log(f"\n✅ Found new game file: {new_bundle_path.name}")
     
-    # --- 3. Run the Update Process ---
     console_log("\n[Step 2/3] Performing Bundle-to-Bundle resource replacement...")
     
-    # Assuming CRC correction is necessary (perform_crc=True) and padding is enabled
     success, result_msg = process_mod_update(
         old_mod_path=old_mod_path,
         new_bundle_path=new_bundle_path,
@@ -62,7 +54,6 @@ def update_mod_function(old_mod_path_str: str, game_resource_dir_str: str, worki
         asset_types_to_replace=asset_types_to_replace
     )
     
-    # --- 4. Final Output ---
     final_path = working_dir / new_bundle_path.name if success else None
     
     if success:
@@ -71,10 +62,8 @@ def update_mod_function(old_mod_path_str: str, game_resource_dir_str: str, worki
     else:
         return False, f"FAILURE: Update failed. {result_msg}", None
 
-# Example of how you would call this function from your main program:
 def updateMod(OLD_MOD, GAME_RESOURCES, OUTPUT_FOLDER):
 
-    # --- CALL THE FUNCTION ---
     status, message, result_path = update_mod_function(
         old_mod_path_str=OLD_MOD,
         game_resource_dir_str=GAME_RESOURCES,

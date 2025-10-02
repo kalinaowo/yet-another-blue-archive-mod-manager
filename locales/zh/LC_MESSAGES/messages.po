@@ -1,0 +1,208 @@
+# Chinese translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-01 17:51-0500\n"
+"PO-Revision-Date: 2025-10-01 17:51-0500\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: zh\n"
+"Language-Team: zh <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: main.py:42
+msgid "Invalid Path"
+msgstr "无效路径"
+
+#: main.py:55
+msgid "Failed to load mod with path: "
+msgstr "无法加载路径的模组："
+
+#: main.py:59
+msgid "Loading completed! Mods loaded successfully: "
+msgstr "加载完成！成功加载的模组为："
+
+#: main.py:62
+msgid "Mods loaded: "
+msgstr "已加载模组："
+
+#: main.py:115
+msgid "A error occured when backing up mod "
+msgstr "备份模组时发生了错误 "
+
+#: main.py:115
+msgid ", mod will not be applied..."
+msgstr "，模组将不会被应用……"
+
+#: main.py:120
+msgid "Successfully backed up mod: "
+msgstr "已成功备份模组："
+
+#: main.py:122
+msgid "Backup already exists for mod: "
+msgstr "备份的模组已存在："
+
+#: main.py:125
+msgid ""
+"It seems like the mod has already been applied, skipping patching and mod"
+" application to avoid corruption"
+msgstr "看起来该模组已经被应用，跳过补丁和应用模组以避免损坏"
+
+#: main.py:130
+msgid "A error occured when applying the CRC for mod "
+msgstr "在为模组应用 CRC 时发生错误"
+
+#: main.py:135
+msgid "Successfully patched CRC for mod "
+msgstr "已成功修补模组的 CRC "
+
+#: main.py:138
+msgid "A error occured when applying mod "
+msgstr "应用模组时发生错误"
+
+#: main.py:138
+msgid ", backup will be automatically restored."
+msgstr "，备份将会自动恢复。"
+
+#: main.py:143 main.py:164 main.py:169
+msgid "Mod "
+msgstr "模组 "
+
+#: main.py:143
+msgid " successfully applied!"
+msgstr "成功应用！"
+
+#: main.py:148
+msgid "Finished applying mods, amount successful: "
+msgstr "已完成模组应用，成功数量为："
+
+#: main.py:164
+msgid ""
+" cannot be restored, no backup files found! You can verifiy integrity of "
+"game files in Steam to obtain the original bundle file (all mods will be "
+"removed however.)"
+msgstr "无法恢复，未找到备份文件！您可以在 Steam 中验证游戏文件的完整性以获取原始捆绑文件（但所有模组将被移除）。"
+
+#: main.py:166
+msgid "Fail"
+msgstr "失败"
+
+#: main.py:169
+msgid " successfully restored!"
+msgstr " 恢复成功！"
+
+#: main.py:173
+msgid "Finished restoring mods, amount successful: "
+msgstr "已完成模组恢复，成功数量为："
+
+#: main.py:180 main.py:182
+msgid "CRC patch for mod "
+msgstr "修补模组CRC "
+
+#: main.py:180
+msgid " failed, mod is applied and a CRC patch may corrupt the CRC"
+msgstr " 失败，模组已经应用，CRC 补丁可能会损坏 CRC"
+
+#: main.py:182
+msgid " failed, an error occured."
+msgstr " 失败，发生错误。"
+
+#: main.py:184
+msgid "Successfully applied patch for mod "
+msgstr "已成功修补模组的 CRC"
+
+#: main.py:203 main.py:212
+msgid "The file with path "
+msgstr "文件的路径为"
+
+#: main.py:203 main.py:212
+msgid " does not appear to be a valid mod!"
+msgstr " 似乎不是一个有效的模组！"
+
+#: main.py:207
+msgid "Successfully added mod "
+msgstr "已成功添加模组"
+
+#: main.py:210
+msgid "An error ocurred when processing file: "
+msgstr "处理文件时发生错误："
+
+#: main.py:216
+msgid "Starting mod update for "
+msgstr "开始更新模组"
+
+#: main.py:216
+msgid "..., this may take some time."
+msgstr "……，这可能需要一些时间。"
+
+#: main.py:219 main.py:244 main.py:247
+msgid "Mod update for "
+msgstr "模组更新 "
+
+#: main.py:219 main.py:244 main.py:259
+msgid " was successful!"
+msgstr " 成功！"
+
+#: main.py:221 main.py:247 main.py:262
+msgid " had failed."
+msgstr " 失败。"
+
+#: main.py:226
+msgid "New game directory path does not exist!"
+msgstr "新的游戏目录路径不存在！"
+
+#: main.py:230
+msgid ""
+"This folder does not seem to contain Blue Archive! Please add the folder "
+"with BlueArchive.exe"
+msgstr "此文件夹似乎不包含《碧蓝档案》！请添加包含 BlueArchive.exe 的文件夹"
+
+#: main.py:235
+msgid "Updated game directory!"
+msgstr "请更新游戏目录！"
+
+#: main.py:241
+msgid "Updating all mods, this will take a while, do not close the window."
+msgstr "正在更新所有模组，这可能需要一些时间，请不要关闭窗口。"
+
+#: main.py:250
+msgid "Finished updating all mods. Successful updates: "
+msgstr "已完成所有插件的更新。更新成功："
+
+#: main.py:256
+msgid "Patching all mods..."
+msgstr "正在修补所有模组..."
+
+#: main.py:259 main.py:262
+msgid "Patch for "
+msgstr "修补 "
+
+#: main.py:264
+msgid "Finished patching all mods. Successful patches: "
+msgstr "已修补所有模组。成功修补的有："
+
+#: main.py:269
+msgid ""
+"Deleted the mod translations, they will be reacquired the next time a "
+"path is loaded."
+msgstr "已删除模组翻译，它们将在下次加载路径时重新获取。"
+
+#: main.py:271
+msgid "Something went wrong deleting the mod translations."
+msgstr "删除模组翻译时出错。"
+
+#: main.py:277
+msgid "Finished resetting the mod manager!"
+msgstr "模组管理器重置完成！"
+
+#: main.py:279
+msgid "Something went wrong resetting the mod manager."
+msgstr "重置模组管理器时出错。"

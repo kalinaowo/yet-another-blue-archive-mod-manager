@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('assets', 'assets')]
+datas = [('assets', 'assets'), ('locales', 'locales')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('UnityPy')
@@ -36,11 +36,11 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\Systemless\\Documents\\Blue Archive\\yet-another-blue-archive-mod-manager\\favicon.ico'],
+    icon=['assets\\favicon.ico'],
 )
