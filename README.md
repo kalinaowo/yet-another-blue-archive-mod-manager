@@ -35,8 +35,8 @@ Please feel free to make an issue to report a bug, this project is in beta after
 
 
 ## Huge thanks:
-Agent-0808: Updating mods with [BA-Modding-Toolkit](https://github.com/Agent-0808/BA-Modding-Toolkit)
-Deathemonic: Patching CRC with [BA-CY](https://github.com/Deathemonic/BA-CY)
+ - Agent-0808: Updating mods with [BA-Modding-Toolkit](https://github.com/Agent-0808/BA-Modding-Toolkit)
+ - Deathemonic: Patching CRC with [BA-CY](https://github.com/Deathemonic/BA-CY)
 
 ## Development:
 <pre>
