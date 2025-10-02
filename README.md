@@ -1,10 +1,15 @@
 # Yet Another Blue Archive Mod Manager
 Its yet another blue archive mod manager, now on v0.1b1!
 
-Whats new in v0.1b1:
- - Fixes a ton of bugs that were in previous versions
- - Finishes the UI mostly, will tweak it most likely however
- - Batch update/CRC patch.
+Whats new in v0.1b2:
+
+- Changes mod detection system/restore system to allow any mod that is in the normal gamedata windows folder or preload windows folder.
+- Fixes an issue with the mod updater that I wasn't aware of, specfically models not getting updated, and also updates to the fixed version of BA-Modding-Toolkit
+to resolve the other issue with model updates.
+- Added zh translation (Chinese)
+- Fixed a lot of bugs, including most bugs 
+- Lots of changes to UI to handle large file names better.
+- Fixes the fact that v0.1b1 was completely broken, oops (pls dont be broken)
 
 ## Features:
  - Creates basic mod loading system
@@ -12,14 +17,12 @@ Whats new in v0.1b1:
  - Automatically patches CRC using the actual game's bundle file
  - Update broken mods after major game update
  - Renaming / managing mods
+ - Chinese translation
 
 Please feel free to make an issue to request a feature.
 
 ## Issues:
- - Translations will fail to download and bug out when disconnect from wifi when downloading.
- - S.Hanako L2D seems to have a weird edge case where the manager thinks its applied when its really not.
- - Fix reset name feature.
-
+ - None i'm aware of, please report them if you encounter any.
 Please feel free to make an issue to report a bug, this project is in beta after all.
 
 ## Goals:
