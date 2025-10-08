@@ -81,13 +81,11 @@ class modLoading:
             return ""
         
     def deleteMod(self, id):
-        print("DELETE SENT")
         modObjects[id].deleteMod()
         modObjects.remove(modObjects[id])
         self.sendModNames()
 
     def changeModName(self, newModName, id):
-        print(newModName)
         modObjects[id].changeModName(newModName)
         window.evaluate_js("cancelRenameMod()")
         
@@ -100,12 +98,10 @@ class modLoading:
         return details
     
     def applyMod(self, modOptions):
-        print(modOptions)
         successfulApplications = 0
         failedApplications = 0
         applicationStatus = []
         for i, x in enumerate(modOptions):
-            print(i)
             applyThisMod = False
             if x == "On" or x == "在":
                 applyThisMod = True
@@ -152,7 +148,6 @@ class modLoading:
         return applicationStatus
     
     def restoreSelectedMods(self, modOptions):
-        print(modOptions)
         successfulApplications = 0
         failedApplications = 0
         applicationStatus = []
@@ -199,7 +194,6 @@ class modLoading:
                     try:
                         data_bytes = base64.b64decode(data)
                         output_path = os.path.join(modClass.MOD_DIRECTORY, x["name"])
-                        print(output_path)
                         with open(output_path, "wb") as f:
                             f.write(data_bytes)
                     except Exception as e:

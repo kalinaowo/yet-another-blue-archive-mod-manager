@@ -43,7 +43,8 @@ class mod():
         self.__determineNameAndType()
         self.modActualName = self.modName
 
-        self.CRCPatched = self.__checkCRCPatch()
+        if self.isValid:
+            self.CRCPatched = self.__checkCRCPatch()
         self.__obtainRealBundlePath()
 
         if self.modPath != "":
@@ -56,17 +57,30 @@ class mod():
         
         if modName != -1:
             self.modName = modName
-        self.fixNaming()
     
     def __validateMod(self):
+        if not self.modPath.endswith(".bundle"):
+            self.isValid=False
+            print("No .bundle")
+            return
+
         preload_full = os.path.join(GAME_LOCATION, PRELOAD_LOCATION)
         default_full = os.path.join(GAME_LOCATION, DEFAULT_LOCATION)
 
-        if os.path.exists(os.path.join(preload_full,self.modPath)):
+        modsCropped = self.doesExist(default_full, self.modPath[:-17])
+        if modsCropped == None:
+            modsCropped = self.doesExist(preload_full, self.modPath[:-17])
+            if modsCropped != None:
+                self.prologdepengroup = True
+                self.isValid = True
+        else:
             self.isValid = True
-            self.prologdepengroup = True
-        elif os.path.exists(os.path.join(default_full,self.modPath)):
-            self.isValid = True
+    
+    def doesExist(self, dir, string):
+        for fileName in os.listdir(dir):
+            if fileName.startswith(string):
+                return fileName
+        return None
     
     def __determineNameAndType(self):
         
@@ -96,26 +110,6 @@ class mod():
                 strippedModString = self.modPath[9:]
                 self.modType = strippedModString.split("-")[0]
                 self.modName = strippedModString.split("-")[1]
-        
-    def fixNaming(self):
-        if not self.isValid:
-            return
-        prefix = self.modPath.split(".")[0]
-        modLocation = GAME_LOCATION
-
-        if self.prologdepengroup:
-            modLocation = os.path.join(modLocation,PRELOAD_LOCATION)
-        else:
-            modLocation = os.path.join(modLocation,DEFAULT_LOCATION)
-
-        match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
-        if self.modPath!=match:
-            print(MOD_DIRECTORY+"\\"+self.modPath,MOD_DIRECTORY+"\\"+match)
-            try:
-                os.rename(MOD_DIRECTORY+"\\"+self.modPath,MOD_DIRECTORY+"\\"+match)
-                self.modPath = match
-            except:
-                print("Error in mod name fixing.")
 
     def __obtainRealBundlePath(self):
         prefix = self.modPath.split(".")[0]
@@ -125,13 +119,18 @@ class mod():
             modLocation = os.path.join(modLocation,PRELOAD_LOCATION)
         else:
             modLocation = os.path.join(modLocation,DEFAULT_LOCATION)
+        
+        preload_full = os.path.join(GAME_LOCATION, PRELOAD_LOCATION)
+        default_full = os.path.join(GAME_LOCATION, DEFAULT_LOCATION)
 
-        match = next((x for x in os.listdir(modLocation) if x.startswith(prefix)), None)
-        if match == None:
+        modsCropped = self.doesExist(default_full, self.modPath[:-17])
+        if modsCropped == None:
+            modsCropped = self.doesExist(preload_full, self.modPath[:-17])
+        if modsCropped == None:
             self.isValid = False
             return
         else:
-            self.realPath = os.path.join(modLocation,match)
+            self.realPath = os.path.join(modLocation,modsCropped)
 
     def remove_CRCPatch(self):
         with open(os.path.join(MOD_DIRECTORY,self.modPath), "rb+") as f:
@@ -240,16 +239,19 @@ class mod():
         if self.isApplied:
             print("Mod applied, cannot update")
             return False, "Please unapply mod before updating first!", None
+
         sourceFile = GAME_LOCATION
         if self.prologdepengroup:
             sourceFile = os.path.join(sourceFile, PRELOAD_LOCATION) 
         else:
             sourceFile = os.path.join(sourceFile, DEFAULT_LOCATION)
-        
+        print("HAIIIIIIIIIII")
+        print(os.path.join(MOD_DIRECTORY,self.modPath), sourceFile, MOD_DIRECTORY)
         status = mainUpdater.updateMod(os.path.join(MOD_DIRECTORY,self.modPath), sourceFile, MOD_DIRECTORY)
         if os.path.exists(os.path.join(MOD_DIRECTORY,"uncrc_"+self.modPath)):
             os.remove(os.path.join(MOD_DIRECTORY,"uncrc_"+self.modPath))
-
+        if status[0]:
+            os.remove(os.path.join(MOD_DIRECTORY,self.modPath))
         return status
 
 def isValidModName(name):

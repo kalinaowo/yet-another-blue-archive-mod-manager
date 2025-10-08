@@ -73,7 +73,6 @@ def retrieveModName(modPath):
     
 def addData(key, contents):
     modData[key] = contents
-    print(modData[key])
     saveDataFile()
 
 def retrieveData(key):
@@ -113,13 +112,12 @@ def retrieveCharacterNameTranslations(char):
         downloadNameTranslations()
     
     modType = ""
-    print(char.modType)
     if char.modType == "spinecharacters":
         modType = " Sprite"
         char_path = char_path[:-4]
     elif char.modType == "spinelobbies":
         modType = " L2D"
-        char_path = char_path[:-4]
+        char_path = char_path[:-5]
     elif char.modType == "characters":
         modType = " Model"
 
@@ -134,7 +132,6 @@ def retrieveCharacterNameTranslations(char):
     except Exception as e:
         print("Error when translating mod name " + str(char_path) + ", " + str(e))
         backup = char_path.replace("_", " ").title()+modType
-        backup = backup.replace("Spr", " Sprite")
         return backup
 
 def deleteTranslations():
